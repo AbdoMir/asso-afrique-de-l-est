@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Store pending membership in Supabase
-    const supabase = createClient()
+    const supabase = await createClient()
     const amounts: Record<string, number> = {
       monthly_5: 5,
       monthly_10: 10,

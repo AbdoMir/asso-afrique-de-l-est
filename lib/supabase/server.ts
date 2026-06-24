@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 import type { Database } from '@/types'
 import { requireEnv } from '@/lib/env'
 
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient<Database>(
     requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
@@ -30,13 +30,13 @@ export function createClient() {
 }
 
 export async function getSession() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   return session
 }
 
 export async function getUser() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }

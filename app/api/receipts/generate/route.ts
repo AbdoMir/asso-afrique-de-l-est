@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Service indisponible' }, { status: 503 })
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

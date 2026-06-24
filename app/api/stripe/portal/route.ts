@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: membership } = await supabase
     .from('memberships')
     .select('stripe_customer_id')

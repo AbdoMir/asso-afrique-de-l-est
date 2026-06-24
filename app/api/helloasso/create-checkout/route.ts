@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // Newsletter subscription
     if (newsletter_consent && email) {
-      const supabase = createClient()
+      const supabase = await createClient()
       await supabase.from('newsletter_subscribers').upsert(
         { email, first_name, consent: true },
         { onConflict: 'email' }

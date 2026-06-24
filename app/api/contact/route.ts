@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, phone, subject, message } = validated.data
-    const supabase = createClient()
+    const supabase = await createClient()
 
     await supabase.from('contact_messages').insert({
       name,

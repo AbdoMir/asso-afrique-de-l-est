@@ -12,9 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['pdf-lib'],
-  },
+  serverExternalPackages: ['pdf-lib'],
 }
 
 module.exports = nextConfig

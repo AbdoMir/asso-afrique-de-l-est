@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(' ')
 
-    const supabase = createClient()
+    const supabase = await createClient()
     await supabase.from('donations').insert({
       amount,
       frequency: 'once',

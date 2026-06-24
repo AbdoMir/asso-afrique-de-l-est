@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { error } = await supabase.from('newsletter_subscribers').upsert(
       { email, first_name, consent },
