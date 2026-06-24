@@ -8,7 +8,7 @@ const TESTIMONIALS = [
   {
     id: '1',
     name: 'Amina K.',
-    role: 'Éthiopie → Paris (2021)',
+    role: 'Éthiopie → Strasbourg (2021)',
     quote:
       "Grâce aux cours de français que l'association m'a financés, j'ai pu passer mon diplôme d'infirmière en France. Aujourd'hui, j'ai un emploi stable et mes enfants s'épanouissent à l'école. Je suis éternellement reconnaissante.",
     flag: '🇪🇹',
@@ -17,7 +17,7 @@ const TESTIMONIALS = [
   {
     id: '2',
     name: 'Hassan M.',
-    role: 'Somalie → Lyon (2019)',
+    role: 'Somalie → Strasbourg (2019)',
     quote:
       "Quand je suis arrivé en France, je ne comprenais rien. L'association a tout traduit pour moi : les papiers de la préfecture, les réunions à l'école de mes enfants. Ils m'ont redonné de la dignité dans les moments les plus difficiles.",
     flag: '🇸🇴',
@@ -25,20 +25,20 @@ const TESTIMONIALS = [
   },
   {
     id: '3',
-    name: 'Fatima N.',
-    role: 'Kenya → Marseille (2022)',
+    name: 'Fatouma A.',
+    role: 'Djibouti → Strasbourg (2022)',
     quote:
       "Mon fils avait des difficultés scolaires. Les ateliers jeunesse de l'association l'ont transformé. Il est maintenant en tête de classe et rêve d'être médecin. Vous avez changé notre vie.",
-    flag: '🇰🇪',
+    flag: '🇩🇯',
     program: 'Soutien Jeunesse',
   },
   {
     id: '4',
-    name: 'David O.',
-    role: 'Ouganda → Bordeaux (2020)',
+    name: 'Saba T.',
+    role: 'Érythrée → Strasbourg (2020)',
     quote:
       "L'équipe m'a accompagné pour créer mon CV, préparer mes entretiens et comprendre le marché du travail français. En 3 mois, j'avais un CDI. Un vrai tremplin vers ma nouvelle vie.",
-    flag: '🇺🇬',
+    flag: '🇪🇷',
     program: 'Accompagnement Emploi',
   },
 ]

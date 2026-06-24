@@ -108,8 +108,7 @@ export default function QuiSommesNousPage() {
                 le soutien à la réussite scolaire des enfants, l&apos;autonomisation économique des parents et la facilitation des démarches.
               </p>
               <div className="bg-warm-50 border-l-4 border-primary-500 p-5 rounded-r-2xl italic text-warm-700 mb-6">
-                &ldquo;Nous ne voulons pas seulement guider les familles dans leurs formalités, mais les aider à tisser de véritables 
-                liens d’amitié et de partage en France, dans un esprit républicain et solidaire.&rdquo;
+                &ldquo;Faire de Strasbourg une terre d&apos;opportunités pour la Corne de l&apos;Afrique.&rdquo;
                 <p className="text-sm font-semibold text-warm-900 mt-2 not-italic">— Ismael Ali Moussa, Président</p>
               </div>
             </div>
