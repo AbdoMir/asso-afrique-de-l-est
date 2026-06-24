@@ -42,28 +42,22 @@ const values = [
 
 const team = [
   {
-    name: 'Amina Barreh',
-    role: 'Présidente & Fondatrice',
-    bio: 'Originaire de Djibouti, Amina a fondé l’association en 2018 pour structurer l’entraide aux primo-arrivants.',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400',
-  },
-  {
-    name: 'Kassim Mohamed',
-    role: 'Trésorier',
-    bio: 'Comptable de profession, Kassim veille à la saine gestion financière et à la transparence budgétaire.',
+    name: 'Ismael Ali Moussa',
+    role: 'Président',
+    bio: 'Porte la vision de l’association et représente l’association auprès des institutions strasbourgeoises.',
     image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400',
   },
   {
-    name: 'Fatouma Ali',
-    role: 'Secrétaire Générale',
-    bio: 'Fatouma coordonne l’accueil des familles et organise les plannings des cours de FLE.',
-    image: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=400&h=400',
+    name: 'Safia Hassan',
+    role: 'Trésorière',
+    bio: 'Veille à la saine gestion financière et à la transparence budgétaire de l’association.',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400',
   },
   {
-    name: 'Julien Mercier',
-    role: 'Responsable Pédagogique (Bénévole)',
-    bio: 'Professeur retraité, Julien coordonne l’équipe de formateurs bénévoles de FLE.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400&h=400',
+    name: 'Dzenita Ibrahimovic',
+    role: 'Secrétaire',
+    bio: 'Coordonne l’accueil des familles et organise les plannings des permanences et des cours de FLE.',
+    image: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=400&h=400',
   },
 ]
 
@@ -91,8 +85,9 @@ export default function QuiSommesNousPage() {
               Bâtir un pont vers <span className="gradient-text">une intégration harmonieuse</span>
             </h1>
             <p className="text-xl text-warm-600 leading-relaxed max-w-2xl">
-              Depuis 2018, l&apos;Association Afrique de l&apos;Est et ses amis accompagne les familles issues 
-              de la Corne de l&apos;Afrique dans leurs démarches d&apos;insertion en France.
+              Depuis 2018, l&apos;Association Afrique de l&apos;Est et ses amis accompagne à Strasbourg les familles
+              originaires de Somalie, du Somaliland, d&apos;Éthiopie, du Soudan, d&apos;Érythrée et de Djibouti dans
+              leurs démarches d&apos;insertion en France.
             </p>
           </div>
         </div>
@@ -115,7 +110,7 @@ export default function QuiSommesNousPage() {
               <div className="bg-warm-50 border-l-4 border-primary-500 p-5 rounded-r-2xl italic text-warm-700 mb-6">
                 &ldquo;Nous ne voulons pas seulement guider les familles dans leurs formalités, mais les aider à tisser de véritables 
                 liens d’amitié et de partage en France, dans un esprit républicain et solidaire.&rdquo;
-                <p className="text-sm font-semibold text-warm-900 mt-2 not-italic">— Amina Barreh, Présidente</p>
+                <p className="text-sm font-semibold text-warm-900 mt-2 not-italic">— Ismael Ali Moussa, Président</p>
               </div>
             </div>
             
@@ -192,6 +187,12 @@ export default function QuiSommesNousPage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-10 p-5 rounded-2xl bg-secondary-50 border border-secondary-100 text-center">
+            <p className="text-secondary-700 font-semibold text-sm">
+              Nous recherchons des talents pour compléter notre équipe dirigeante et bâtir ce pont ensemble !
+            </p>
           </div>
         </div>
       </section>

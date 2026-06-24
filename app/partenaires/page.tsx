@@ -11,29 +11,30 @@ export const metadata: Metadata = {
 
 const partners = [
   {
-    category: 'Partenaires Institutionnels',
+    category: 'Institutions',
     icon: Landmark,
     items: [
-      { name: 'Mairie de Paris', desc: 'Soutien aux projets d’intégration locale et mise à disposition de salles.', logo: '🏛️' },
-      { name: 'Préfecture d’Île-de-France', desc: 'Subventions dans le cadre du plan d’intégration des primo-arrivants.', logo: '🏛️' },
-      { name: 'Caisse d’Allocations Familiales (CAF)', desc: 'Soutien aux ateliers parentalité et médiation familiale.', logo: '🏛️' },
+      { name: 'Préfecture du Bas-Rhin', desc: 'Accompagnement des démarches liées à la régularisation et à l’intégration.', logo: '🏛️' },
+      { name: 'Services de l’État', desc: 'Coordination sur les dispositifs d’accueil des primo-arrivants.', logo: '🏛️' },
+      { name: 'Organismes d’Intégration', desc: 'Partenariats sur les parcours d’intégration linguistique et sociale.', logo: '🏛️' },
     ],
   },
   {
-    category: 'Partenaires Associatifs',
-    icon: Heart,
-    items: [
-      { name: 'La Croix-Rouge Française', desc: 'Collaboration sur les distributions alimentaires et l’aide d’urgence.', logo: '🤝' },
-      { name: 'Secours Populaire', desc: 'Partenariat pour l’accès aux vacances et sorties jeunesse.', logo: '🤝' },
-      { name: 'Bibliothèques Sans Frontières', desc: 'Fourniture de ressources pédagogiques et de matériel de lecture.', logo: '🤝' },
-    ],
-  },
-  {
-    category: 'Entreprises Mécènes',
+    category: 'Ville & Région',
     icon: Building2,
     items: [
-      { name: 'Fondation Orange', desc: 'Mécénat financier pour l’équipement informatique des ateliers jeunesse.', logo: '🏢' },
-      { name: 'Stripe France', desc: 'Tarifs préférentiels et accompagnement technique sur la collecte de dons.', logo: '🏢' },
+      { name: 'Ville de Strasbourg', desc: 'Soutien aux actions locales et mise à disposition d’espaces d’accueil.', logo: '🏙️' },
+      { name: 'Eurométropole', desc: 'Passerelles avec les infrastructures sportives et sociales de quartier.', logo: '🏙️' },
+      { name: 'Quartiers Prioritaires', desc: 'Actions ciblées en faveur des familles des quartiers prioritaires.', logo: '🏙️' },
+    ],
+  },
+  {
+    category: 'Local & Sport',
+    icon: Heart,
+    items: [
+      { name: 'Clubs Sportifs Locaux', desc: 'Partenariats pour faciliter l’inscription et l’équipement des jeunes sportifs.', logo: '🤝' },
+      { name: 'Associations de Quartier', desc: 'Collaboration sur les événements interculturels et le lien social.', logo: '🤝' },
+      { name: 'Réseaux de Bénévoles', desc: 'Mobilisation de traducteurs et accompagnateurs bénévoles.', logo: '🤝' },
     ],
   },
 ]

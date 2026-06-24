@@ -110,22 +110,22 @@ export function Footer() {
             {/* Contact info */}
             <div className="mt-6 space-y-2">
               <a
-                href={`mailto:${process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'contact@asso-aes.fr'}`}
+                href={`mailto:${process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr'}`}
                 className="flex items-center gap-2 text-sm text-warm-400 hover:text-primary-400 transition-colors"
               >
                 <Mail className="w-4 h-4 shrink-0" />
-                {process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'contact@asso-aes.fr'}
+                {process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr'}
               </a>
               <a
-                href="tel:+33100000000"
+                href="tel:+33605675911"
                 className="flex items-center gap-2 text-sm text-warm-400 hover:text-primary-400 transition-colors"
               >
                 <Phone className="w-4 h-4 shrink-0" />
-                {process.env.NEXT_PUBLIC_ASSOCIATION_PHONE || '+33 1 XX XX XX XX'}
+                {process.env.NEXT_PUBLIC_ASSOCIATION_PHONE || '06 05 67 59 11'}
               </a>
               <div className="flex items-start gap-2 text-sm text-warm-400">
                 <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || 'Paris, France'}</span>
+                <span>{process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '45 Boulevard la Fontaine, 67200 Strasbourg'}</span>
               </div>
             </div>
           </div>

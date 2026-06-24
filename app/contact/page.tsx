@@ -114,9 +114,9 @@ export default function ContactPage() {
 
               <div className="space-y-4">
                 {[
-                  { icon: Mail, label: 'Adresse email', value: 'contact@asso-aes.fr', href: 'mailto:contact@asso-aes.fr' },
-                  { icon: Phone, label: 'Téléphone', value: '+33 1 XX XX XX XX', href: 'tel:+33100000000' },
-                  { icon: MapPin, label: 'Adresse postale', value: '15 Rue de la Solidarité, 75019 Paris', href: '#' }
+                  { icon: Mail, label: 'Adresse email', value: 'asso.afrique.est.et.ses.amis@outlook.fr', href: 'mailto:asso.afrique.est.et.ses.amis@outlook.fr' },
+                  { icon: Phone, label: 'Téléphone', value: '06 05 67 59 11', href: 'tel:+33605675911' },
+                  { icon: MapPin, label: 'Adresse postale', value: '45 Boulevard la Fontaine, 67200 Strasbourg', href: '#' }
                 ].map((item) => (
                   <div key={item.label} className="p-5 border border-warm-100 rounded-2xl bg-warm-50/50 flex gap-4 items-start hover:border-primary-300 transition-colors">
                     <div className="w-10 h-10 rounded-xl bg-white border border-warm-100 flex items-center justify-center text-primary-500 shrink-0 shadow-sm">
