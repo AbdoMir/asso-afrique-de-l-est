@@ -1,0 +1,131 @@
+'use client'
+
+import React from 'react'
+import Link from 'next/link'
+import { motion, useInView } from 'framer-motion'
+import { useRef } from 'react'
+import { ArrowRight, BookOpen, Home, GraduationCap } from 'lucide-react'
+
+const ACTIONS = [
+  {
+    id: '1',
+    title: 'Cours de français intensifs (FLE)',
+    description:
+      'Des cours hebdomadaires de français langue étrangère pour adultes, animés par des bénévoles certifiés. Tous niveaux acceptés, de l\'alphabet aux situations professionnelles.',
+    status: 'active',
+    beneficiaries: 87,
+    icon: BookOpen,
+    color: 'bg-primary-500',
+    tags: ['FLE', 'Adultes', 'Hebdomadaire'],
+    href: '/nos-actions',
+  },
+  {
+    id: '2',
+    title: 'Accueil et orientation administrative',
+    description:
+      'Un accompagnement personnalisé pour comprendre et remplir les documents officiels : titre de séjour, allocations, scolarisation, accès aux soins.',
+    status: 'active',
+    beneficiaries: 154,
+    icon: Home,
+    color: 'bg-secondary-500',
+    tags: ['Administrative', 'Toutes situations'],
+    href: '/nos-actions',
+  },
+  {
+    id: '3',
+    title: 'Atelier "Mon premier CV en France"',
+    description:
+      'Un atelier mensuel pour apprendre les codes du CV et de la lettre de motivation à la française, avec des simulations d\'entretien et des conseils RH.',
+    status: 'active',
+    beneficiaries: 43,
+    icon: GraduationCap,
+    color: 'bg-accent-600',
+    tags: ['Emploi', 'Mensuel'],
+    href: '/nos-actions',
+  },
+]
+
+export function ActionsPreview() {
+  const ref = useRef<HTMLElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.15 })
+
+  return (
+    <section ref={ref} className="section bg-white" aria-labelledby="actions-heading">
+      <div className="container-custom">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+          >
+            <span className="section-badge">Nos actions</span>
+            <h2 id="actions-heading" className="section-title mb-0">
+              Ce que nous faisons concrètement
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Link
+              href="/nos-actions"
+              className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold transition-colors"
+            >
+              Toutes nos actions <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {ACTIONS.map((action, i) => (
+            <motion.div
+              key={action.id}
+              initial={{ opacity: 0, y: 32 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+            >
+              <Link href={action.href} className="block card-hover p-6 group h-full">
+                {/* Icon */}
+                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
+                  <action.icon className="w-6 h-6 text-white" />
+                </div>
+
+                {/* Status badge */}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary-600 bg-secondary-50 px-2 py-1 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 animate-pulse" />
+                    En cours
+                  </span>
+                  <span className="text-xs text-warm-400">
+                    {action.beneficiaries} bénéficiaires
+                  </span>
+                </div>
+
+                <h3 className="font-bold text-warm-900 text-lg mb-3 leading-snug">
+                  {action.title}
+                </h3>
+                <p className="text-warm-600 text-sm leading-relaxed mb-4">
+                  {action.description}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-1.5">
+                  {action.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2.5 py-1 text-xs font-medium text-warm-600 bg-warm-100 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
