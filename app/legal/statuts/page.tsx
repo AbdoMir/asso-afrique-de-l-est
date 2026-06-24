@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { ChevronRight, Landmark, FileText, Download } from 'lucide-react'
+import { ChevronRight, Landmark } from 'lucide-react'
+import { DownloadButton } from './DownloadButton'
 
 export const metadata: Metadata = {
   title: 'Statuts de l\'association',
@@ -28,17 +29,7 @@ export default function StatutsPage() {
             </div>
             
             {/* Simulation of statute file download */}
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                alert("Le téléchargement des statuts au format PDF (Simulé) a démarré.")
-              }}
-              className="inline-flex items-center gap-2 text-sm font-bold text-white bg-primary-500 hover:bg-primary-600 px-4 py-2.5 rounded-xl shadow-warm transition-all hover:-translate-y-0.5"
-            >
-              <Download className="w-4 h-4" />
-              Télécharger les Statuts (PDF)
-            </a>
+            <DownloadButton />
           </div>
 
           <p className="text-warm-500 text-sm leading-relaxed">
