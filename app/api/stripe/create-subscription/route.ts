@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  stripe,
+  getStripeClient,
   createStripeCustomer,
-  STRIPE_PRICE_IDS,
+  getStripePriceId,
 } from '@/lib/stripe/client'
 import { createClient } from '@/lib/supabase/server'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
@@ -38,8 +38,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const priceId = STRIPE_PRICE_IDS[formula as keyof typeof STRIPE_PRICE_IDS]
-    if (!priceId) {
+    let priceId: string
+    try {
+      priceId = getStripePriceId(formula)
+    } catch {
       return NextResponse.json(
         { error: 'Prix Stripe non configuré. Contactez-nous.' },
         { status: 500 }
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Create a SetupIntent — le donateur choisit CB ou prélèvement SEPA
     // sur la page de confirmation (Stripe Payment Element)
-    const setupIntent = await stripe.setupIntents.create({
+    const setupIntent = await getStripeClient().setupIntents.create({
       customer: customer.id,
       payment_method_types: ['card', 'sepa_debit'],
       usage: 'off_session',

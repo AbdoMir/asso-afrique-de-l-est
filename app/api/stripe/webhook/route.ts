@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { stripe, constructWebhookEvent, STRIPE_PRICE_IDS } from '@/lib/stripe/client'
+import { getStripeClient, constructWebhookEvent } from '@/lib/stripe/client'
 import { sendWelcomeEmail } from '@/lib/resend/emails'
 import type Stripe from 'stripe'
 
@@ -32,13 +32,13 @@ export async function POST(request: NextRequest) {
 
         // Le donateur a choisi CB ou SEPA sur la page de confirmation —
         // on le détermine à partir du moyen de paiement réellement attaché.
-        const paymentMethod = await stripe.paymentMethods.retrieve(
+        const paymentMethod = await getStripeClient().paymentMethods.retrieve(
           setupIntent.payment_method as string
         )
         const paymentMethodType = paymentMethod.type === 'card' ? 'card' : 'sepa_debit'
 
         // Create the actual subscription
-        const subscription = await stripe.subscriptions.create({
+        const subscription = await getStripeClient().subscriptions.create({
           customer: setupIntent.customer as string,
           items: [{ price: price_id }],
           default_payment_method: setupIntent.payment_method as string,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         if (!subscriptionId) break
 
         // Get subscription details
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const subscription = await getStripeClient().subscriptions.retrieve(subscriptionId)
         const { formula, donor_name, donor_email, payment_method } = subscription.metadata
 
         const amounts: Record<string, number> = { monthly_5: 5, monthly_10: 10, monthly_20: 20 }
