@@ -4,7 +4,7 @@ import {
   createStripeCustomer,
   getStripePriceId,
 } from '@/lib/stripe/client'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Store pending membership in Supabase
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const amounts: Record<string, number> = {
       monthly_5: 5,
       monthly_10: 10,

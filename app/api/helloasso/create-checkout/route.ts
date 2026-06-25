@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createCheckoutSession } from '@/lib/helloasso/client'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // Newsletter subscription
     if (newsletter_consent && email) {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
       await supabase.from('newsletter_subscribers').upsert(
         { email, first_name, consent: true },
         { onConflict: 'email' }

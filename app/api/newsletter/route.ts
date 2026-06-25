@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendNewsletterWelcome } from '@/lib/resend/emails'
 import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { error } = await supabase.from('newsletter_subscribers').upsert(
       { email, first_name, consent },

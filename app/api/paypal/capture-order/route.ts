@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { capturePayPalOrder, isPayPalConfigured } from '@/lib/paypal/client'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const captureSchema = z.object({
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(' ')
 
-    const supabase = await createClient()
-    await supabase.from('donations').insert({
+    const supabase = createAdminClient()
+    const { error } = await supabase.from('donations').insert({
       amount,
       frequency: 'once',
       status: 'succeeded',
@@ -53,6 +53,12 @@ export async function POST(request: NextRequest) {
       donor_name: donorName || undefined,
       donor_email: donorEmail,
     })
+
+    if (error) {
+      // Le paiement PayPal a déjà été capturé : on ne fait pas échouer la
+      // requête côté donateur, mais on journalise pour ne pas perdre le don.
+      console.error('PayPal donation insert failed (payment already captured):', error)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

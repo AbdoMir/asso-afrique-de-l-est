@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendContactConfirmation } from '@/lib/resend/emails'
 import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
@@ -32,15 +32,17 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, phone, subject, message } = validated.data
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
-    await supabase.from('contact_messages').insert({
+    const { error } = await supabase.from('contact_messages').insert({
       name,
       email,
       phone,
       subject,
       message,
     })
+
+    if (error) throw error
 
     await sendContactConfirmation({ to: email, name, subject })
 
