@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import {
   getStripeClient,
   createStripeCustomer,
@@ -6,6 +7,19 @@ import {
 } from '@/lib/stripe/client'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+
+const subscriptionSchema = z.object({
+  formula: z.enum(['monthly_5', 'monthly_10', 'monthly_20']),
+  first_name: z.string().min(1),
+  last_name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  zip_code: z.string().optional(),
+  comment: z.string().optional(),
+  newsletter_consent: z.boolean().optional(),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +31,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    const validated = subscriptionSchema.safeParse(body)
+
+    if (!validated.success) {
+      return NextResponse.json(
+        { error: 'Données invalides', details: validated.error.flatten() },
+        { status: 400 }
+      )
+    }
+
     const {
       formula,
       first_name,
@@ -28,15 +51,7 @@ export async function POST(request: NextRequest) {
       zip_code,
       comment,
       newsletter_consent,
-    } = body
-
-    // Validate formula
-    if (!['monthly_5', 'monthly_10', 'monthly_20'].includes(formula)) {
-      return NextResponse.json(
-        { error: 'Formule invalide' },
-        { status: 400 }
-      )
-    }
+    } = validated.data
 
     let priceId: string
     try {
@@ -56,8 +71,8 @@ export async function POST(request: NextRequest) {
       address: address
         ? {
             line1: address,
-            city,
-            postal_code: zip_code,
+            city: city || '',
+            postal_code: zip_code || '',
             country: 'FR',
           }
         : undefined,
