@@ -84,8 +84,9 @@ function LoginForm() {
         description: 'Ravi de vous revoir !',
         variant: 'success',
       })
-      router.push(redirect)
-      router.refresh()
+      // Rechargement complet (pas de router.push) : garantit que les cookies
+      // de session sont bien disponibles quand /espace-adherent se charge.
+      window.location.href = redirect
     } catch (err: any) {
       setErrorMsg(err.message || 'Identifiants invalides')
       toast({

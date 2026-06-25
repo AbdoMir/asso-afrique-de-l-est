@@ -75,13 +75,13 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.variable} ${outfit.variable}`}>
       <head>
         {/* Plausible Analytics — RGPD-friendly, sans cookies */}
-        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (
           <script
             defer
             data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
             src="https://plausible.io/js/script.js"
           />
-        )}
+        ) : null}
       </head>
       <body className="min-h-screen flex flex-col bg-warm-50">
         <a href="#main-content" className="skip-nav">
