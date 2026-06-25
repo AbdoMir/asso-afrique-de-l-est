@@ -5,7 +5,7 @@ import { generateCerfaNumber } from '@/lib/utils'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 export async function GET(request: NextRequest) {
-  if (isRateLimited(`receipts-generate:${getClientIp(request)}`, 10, 10 * 60 * 1000)) {
+  if (await isRateLimited(`receipts-generate:${getClientIp(request)}`, 10, 10 * 60 * 1000)) {
     return NextResponse.json({ success: false, error: 'Trop de requêtes. Veuillez réessayer plus tard.' }, { status: 429 })
   }
 

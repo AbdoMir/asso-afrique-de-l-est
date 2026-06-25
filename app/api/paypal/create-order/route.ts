@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    if (isRateLimited(`paypal-create-order:${getClientIp(request)}`, 5, 10 * 60 * 1000)) {
+    if (await isRateLimited(`paypal-create-order:${getClientIp(request)}`, 5, 10 * 60 * 1000)) {
       return NextResponse.json(
         { error: 'Trop de requêtes. Veuillez réessayer plus tard.' },
         { status: 429 }

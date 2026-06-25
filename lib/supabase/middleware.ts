@@ -31,8 +31,16 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect /espace-adherent routes
-  if (!user && request.nextUrl.pathname.startsWith('/espace-adherent')) {
+  // Le site est public par défaut (vitrine association) : seules les routes
+  // listées ici exigent une session. Toute nouvelle zone privée doit y être
+  // ajoutée explicitement — la protection réelle des données reste assurée
+  // par RLS côté Supabase, ceci n'est qu'une redirection UX.
+  const PROTECTED_PREFIXES = ['/espace-adherent']
+  const isProtected = PROTECTED_PREFIXES.some((prefix) =>
+    request.nextUrl.pathname.startsWith(prefix)
+  )
+
+  if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', request.nextUrl.pathname)

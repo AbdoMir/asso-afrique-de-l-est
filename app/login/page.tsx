@@ -178,7 +178,7 @@ function LoginForm() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/espace-adherent/nouveau-mot-de-passe`,
+        redirectTo: `${window.location.origin}/api/auth/callback?redirect=/espace-adherent/nouveau-mot-de-passe`,
       })
 
       if (error) throw error
