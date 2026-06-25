@@ -10,6 +10,10 @@ const REQUIRED_ENV_VARS = [
 ]
 
 export function register() {
+  // Ce hook tourne aussi dans le runtime Edge (middleware) ; la validation
+  // ne concerne que le serveur Node.js (API routes, Server Components).
+  if (process.env.NEXT_RUNTIME !== 'nodejs') return
+
   const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name])
 
   if (missing.length > 0) {
