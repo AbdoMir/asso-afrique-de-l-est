@@ -35,7 +35,7 @@ export default function MentionsLegalesPage() {
             <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1">
               <li><strong>RNA (Répertoire National des Associations) :</strong> {process.env.NEXT_PUBLIC_RNA || 'WXXXXXXXXXX'}</li>
               <li><strong>SIRET :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_SIRET || 'XXX XXX XXX XXXXX'}</li>
-              <li><strong>Siège social :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '45 Boulevard la Fontaine, 67200 Strasbourg'}</li>
+              <li><strong>Siège social :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '1 rue de Graffenstaden, 67380 Lingolsheim'}</li>
               <li><strong>Email :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr'}</li>
               <li><strong>Directeur de la publication :</strong> Ismael Ali Moussa, en sa qualité de Président de l&apos;association.</li>
             </ul>

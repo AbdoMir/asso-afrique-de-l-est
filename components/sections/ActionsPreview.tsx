@@ -88,7 +88,7 @@ export function ActionsPreview() {
             >
               <Link href={action.href} className="block card-hover p-6 group h-full">
                 {/* Icon */}
-                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
+                <div className={`w-12 h-12 blob-3 ${action.color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
                   <action.icon className="w-6 h-6 text-white" />
                 </div>
 

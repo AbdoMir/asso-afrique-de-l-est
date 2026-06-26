@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 
@@ -11,6 +12,7 @@ const TESTIMONIALS = [
     role: 'Éthiopie → Strasbourg (2021)',
     quote:
       "Grâce aux cours de français que l'association m'a financés, j'ai pu passer mon diplôme d'infirmière en France. Aujourd'hui, j'ai un emploi stable et mes enfants s'épanouissent à l'école. Je suis éternellement reconnaissante.",
+    photo: '/images/stock/avatar-amina.jpg',
     flag: '🇪🇹',
     program: 'Cours FLE + Emploi',
   },
@@ -20,6 +22,7 @@ const TESTIMONIALS = [
     role: 'Somalie → Strasbourg (2019)',
     quote:
       "Quand je suis arrivé en France, je ne comprenais rien. L'association a tout traduit pour moi : les papiers de la préfecture, les réunions à l'école de mes enfants. Ils m'ont redonné de la dignité dans les moments les plus difficiles.",
+    photo: '/images/stock/avatar-hassan.jpg',
     flag: '🇸🇴',
     program: 'Traduction + Intégration',
   },
@@ -29,6 +32,7 @@ const TESTIMONIALS = [
     role: 'Djibouti → Strasbourg (2022)',
     quote:
       "Mon fils avait des difficultés scolaires. Les ateliers jeunesse de l'association l'ont transformé. Il est maintenant en tête de classe et rêve d'être médecin. Vous avez changé notre vie.",
+    photo: null,
     flag: '🇩🇯',
     program: 'Soutien Jeunesse',
   },
@@ -38,6 +42,7 @@ const TESTIMONIALS = [
     role: 'Érythrée → Strasbourg (2020)',
     quote:
       "L'équipe m'a accompagné pour créer mon CV, préparer mes entretiens et comprendre le marché du travail français. En 3 mois, j'avais un CDI. Un vrai tremplin vers ma nouvelle vie.",
+    photo: null,
     flag: '🇪🇷',
     program: 'Accompagnement Emploi',
   },
@@ -96,9 +101,15 @@ export function TestimonialsSection() {
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-3xl border-2 border-white/30">
-                  {testimonial.flag}
-                </div>
+                {testimonial.photo ? (
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-white/30 shrink-0">
+                    <Image src={testimonial.photo} alt={testimonial.name} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-3xl border-2 border-white/30 shrink-0">
+                    {testimonial.flag}
+                  </div>
+                )}
                 <div>
                   <p className="font-bold text-white text-lg">{testimonial.name}</p>
                   <p className="text-white/60 text-sm">{testimonial.role}</p>

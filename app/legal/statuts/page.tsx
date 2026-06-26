@@ -59,7 +59,7 @@ export default function StatutsPage() {
             <section className="space-y-2">
               <h2 className="font-bold text-warm-900 text-base">ARTICLE 3 : Siège social</h2>
               <p>
-                Le siège social est fixé au {process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '45 Boulevard la Fontaine, 67200 Strasbourg'}.
+                Le siège social est fixé au {process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '1 rue de Graffenstaden, 67380 Lingolsheim'}.
                 Il pourra être transféré sur simple décision du Conseil d&apos;Administration.
               </p>
             </section>

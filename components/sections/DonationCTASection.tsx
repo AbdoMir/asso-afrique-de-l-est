@@ -52,18 +52,19 @@ export function DonationCTASection() {
 
             {/* Right side CTA blocks */}
             <div className="p-8 md:p-12 lg:col-span-5 bg-warm-900 text-white flex flex-col justify-center">
-              <h3 className="font-display font-bold text-xl mb-6 text-warm-100">Choisissez votre soutien mensuel :</h3>
-              
+              <h3 className="font-display font-bold text-xl mb-6 text-warm-100">Choisissez votre soutien :</h3>
+
               <div className="space-y-4 mb-8">
                 {[
                   { amount: 5, action: '5€/mois', desc: 'finance 1 heure de FLE par mois', href: '/adherer-soutenir?formula=monthly_5' },
                   { amount: 10, action: '10€/mois', desc: 'finance le suivi scolaire d\'un enfant', href: '/adherer-soutenir?formula=monthly_10', popular: true },
-                  { amount: 20, action: '20€/mois', desc: 'finance 1 accompagnement vers l\'emploi', href: '/adherer-soutenir?formula=monthly_20' }
+                  { amount: 20, action: '20€/mois', desc: 'finance 1 accompagnement vers l\'emploi', href: '/adherer-soutenir?formula=monthly_20' },
+                  { amount: 'simple', action: 'Don ponctuel', desc: 'adhésion simple à partir de 10€, sans engagement', href: '/adherer-soutenir?formula=simple' }
                 ].map((item) => (
                   <Link href={item.href} key={item.amount} className="block group">
                     <div className={`p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
-                      item.popular 
-                        ? 'bg-primary-500 border-primary-400 hover:bg-primary-600' 
+                      item.popular
+                        ? 'bg-primary-500 border-primary-400 hover:bg-primary-600'
                         : 'bg-warm-800/50 border-warm-700 hover:bg-warm-800 hover:border-warm-600'
                     }`}>
                       <div>
@@ -87,7 +88,7 @@ export function DonationCTASection() {
 
               <Link href="/adherer-soutenir" className="w-full">
                 <Button variant="white" size="md" className="w-full text-warm-900 font-bold justify-center">
-                  Autre montant ou don ponctuel
+                  Voir toutes les formules
                 </Button>
               </Link>
             </div>

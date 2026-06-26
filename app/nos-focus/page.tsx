@@ -113,7 +113,7 @@ export default function NosFocusPage() {
               <div className="lg:col-span-8 space-y-6 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-xl ${focus.bg} flex items-center justify-center`}>
+                    <div className={`w-12 h-12 blob-3 ${focus.bg} flex items-center justify-center`}>
                       <focus.icon className={`w-6 h-6 ${focus.color}`} />
                     </div>
                     <div>

@@ -116,7 +116,7 @@ export default function ContactPage() {
                 {[
                   { icon: Mail, label: 'Adresse email', value: 'asso.afrique.est.et.ses.amis@outlook.fr', href: 'mailto:asso.afrique.est.et.ses.amis@outlook.fr' },
                   { icon: Phone, label: 'Téléphone', value: '06 05 67 59 11', href: 'tel:+33605675911' },
-                  { icon: MapPin, label: 'Adresse postale', value: '45 Boulevard la Fontaine, 67200 Strasbourg', href: '#' }
+                  { icon: MapPin, label: 'Adresse postale', value: '1 rue de Graffenstaden, 67380 Lingolsheim', href: '#' }
                 ].map((item) => (
                   <div key={item.label} className="p-5 border border-warm-100 rounded-2xl bg-warm-50/50 flex gap-4 items-start hover:border-primary-300 transition-colors">
                     <div className="w-10 h-10 rounded-xl bg-white border border-warm-100 flex items-center justify-center text-primary-500 shrink-0 shadow-sm">

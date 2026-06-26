@@ -144,7 +144,7 @@ export default function QuiSommesNousPage() {
             {values.map((v) => (
               <div key={v.title} className="card-hover p-6 bg-white rounded-2xl border border-warm-100 flex flex-col justify-between">
                 <div>
-                  <div className={`w-12 h-12 rounded-xl ${v.bg} flex items-center justify-center mb-5 shrink-0`}>
+                  <div className={`w-12 h-12 blob-3 ${v.bg} flex items-center justify-center mb-5 shrink-0`}>
                     <v.icon className={`w-6 h-6 ${v.color}`} />
                   </div>
                   <h3 className="font-display font-bold text-lg text-warm-900 mb-2">{v.title}</h3>

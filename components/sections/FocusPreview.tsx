@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Languages, Users, Briefcase, ArrowRight } from 'lucide-react'
@@ -10,6 +11,7 @@ const FOCUSES = [
   {
     id: 'traduction',
     icon: Languages,
+    photo: null,
     title: 'Traduction',
     color: 'from-purple-500 to-purple-600',
     bg: 'bg-purple-50',
@@ -23,6 +25,7 @@ const FOCUSES = [
   {
     id: 'jeunesse',
     icon: Users,
+    photo: '/images/stock/kids-study.jpg',
     title: 'Jeunesse',
     color: 'from-pink-500 to-rose-500',
     bg: 'bg-pink-50',
@@ -36,6 +39,7 @@ const FOCUSES = [
   {
     id: 'emploi',
     icon: Briefcase,
+    photo: '/images/stock/friends-group.jpg',
     title: 'Emploi',
     color: 'from-emerald-500 to-teal-600',
     bg: 'bg-emerald-50',
@@ -80,10 +84,26 @@ export function FocusPreview() {
               transition={{ duration: 0.5, delay: i * 0.12 }}
             >
               <Link href={focus.href} className="block card-hover p-7 group h-full">
-                {/* Icon */}
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${focus.color} flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform`}>
-                  <focus.icon className="w-7 h-7 text-white" />
-                </div>
+                {/* Photo (blob) + icône, ou icône seule à défaut */}
+                {focus.photo ? (
+                  <div className="relative w-20 h-20 mb-5">
+                    <div className="absolute inset-0 blob-2 overflow-hidden">
+                      <Image
+                        src={focus.photo}
+                        alt=""
+                        fill
+                        className="object-cover transition-transform group-hover:scale-110"
+                      />
+                    </div>
+                    <div className={`absolute -bottom-1.5 -right-1.5 w-9 h-9 rounded-full bg-gradient-to-br ${focus.color} flex items-center justify-center shadow-sm border-2 border-white`}>
+                      <focus.icon className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`w-14 h-14 blob-3 bg-gradient-to-br ${focus.color} flex items-center justify-center mb-5 shadow-sm group-hover:scale-110 transition-transform`}>
+                    <focus.icon className="w-7 h-7 text-white" />
+                  </div>
+                )}
 
                 {/* Title */}
                 <h3 className="text-xl font-bold text-warm-900 mb-3">{focus.title}</h3>

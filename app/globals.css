@@ -105,10 +105,13 @@
     @apply px-8 py-4 text-lg rounded-2xl;
   }
 
-  /* Cards */
+  /* Cards — douces, arrondies, sans bordure dure. Pas d'overflow-hidden : les
+     badges (ex. "Populaire") doivent pouvoir dépasser proprement en haut de
+     carte sans être rognés. Les contenus qui doivent être clippés (photos en
+     pleine largeur) portent leur propre overflow-hidden local. */
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-warm-100 
-           overflow-hidden transition-all duration-300;
+    @apply bg-white rounded-3xl shadow-card border border-warm-100
+           transition-all duration-300;
   }
 
   .card-hover {
@@ -116,7 +119,7 @@
   }
 
   .card-gradient {
-    @apply bg-gradient-card rounded-2xl border border-warm-100 overflow-hidden;
+    @apply bg-gradient-card rounded-3xl border border-warm-100 overflow-hidden;
   }
 
   /* Section containers */
@@ -198,27 +201,33 @@
     @apply text-5xl md:text-6xl font-black font-display text-primary-500 leading-none;
   }
 
-  /* Gradient text */
+  /* Mot-clé de titre — couleur pleine simple, sans encadré */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 via-accent-500 to-secondary-500 
-           bg-clip-text text-transparent;
+    @apply text-primary-500;
   }
 
-  /* Hero */
+  /* Hero — aplat chaleureux */
   .hero-bg {
-    background: linear-gradient(
-      160deg,
-      rgba(232,112,42,0.06) 0%,
-      rgba(244,169,53,0.04) 40%,
-      rgba(45,125,70,0.06) 100%
-    ), #FEFAF5;
+    background-color: #FEFAF5;
   }
 
-  /* Divider wave */
+  /* Divider wave (legacy, conservé pour compat) */
   .wave-divider {
     @apply w-full overflow-hidden leading-none;
   }
-  
+
+  /* Formes organiques "blob" — masques photo et accents décoratifs,
+     dans l'esprit papier-découpé plutôt que géométrique strict. */
+  .blob-1 {
+    border-radius: 63% 37% 30% 70% / 50% 45% 55% 50%;
+  }
+  .blob-2 {
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+  }
+  .blob-3 {
+    border-radius: 35% 65% 60% 40% / 60% 40% 60% 40%;
+  }
+
   /* Testimonial */
   .testimonial-card {
     @apply card p-6 md:p-8;

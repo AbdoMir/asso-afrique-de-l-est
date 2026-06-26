@@ -127,7 +127,7 @@ export default function NosActionsPage() {
                 {/* Text content */}
                 <div className="lg:col-span-7 space-y-6">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl ${act.bg} flex items-center justify-center`}>
+                    <div className={`w-12 h-12 blob-3 ${act.bg} flex items-center justify-center`}>
                       <act.icon className={`w-6 h-6 ${act.color}`} />
                     </div>
                     <h2 className="font-display font-black text-2xl md:text-3xl text-warm-900">{act.title}</h2>

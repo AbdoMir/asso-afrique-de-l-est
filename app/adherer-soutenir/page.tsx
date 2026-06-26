@@ -98,7 +98,7 @@ export default function AdhererSoutenirPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {guarantees.map((g) => (
               <div key={g.title} className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl ${g.bg} flex items-center justify-center shrink-0`}>
+                <div className={`w-10 h-10 blob-3 ${g.bg} flex items-center justify-center shrink-0`}>
                   <g.icon className={`w-5 h-5 ${g.color}`} />
                 </div>
                 <div>

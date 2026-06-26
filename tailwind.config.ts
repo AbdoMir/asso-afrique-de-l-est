@@ -96,6 +96,7 @@ const config: Config = {
         'warm-lg': '0 12px 40px -8px rgba(232,112,42,0.2)',
         'card': '0 2px 16px -2px rgba(26,26,26,0.08)',
         'card-hover': '0 8px 32px -4px rgba(26,26,26,0.12)',
+        'blob': '0 24px 64px -12px rgba(26,26,26,0.22)',
       },
       borderRadius: {
         '2xl': '1rem',

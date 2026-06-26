@@ -614,20 +614,26 @@ export function DonationSection() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm text-warm-500">
-                      <span>Déduction fiscale (66%)</span>
+                      <span>Réduction d&apos;impôt (66%)</span>
                       <span className="text-secondary-600 font-medium">
                         -{(formula.amount * 0.66).toFixed(2)}€
                         {formula.frequency === 'monthly' && '/mois'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center font-bold text-warm-900 pt-2 border-t border-warm-100">
-                      <span>Coût réel pour vous</span>
+                      <span>Coût réel après impôts</span>
                       <span className="text-primary-500">
                         {(formula.amount * 0.34).toFixed(2)}€
                         {formula.frequency === 'monthly' && '/mois'}
                       </span>
                     </div>
                   </div>
+                  <p className="text-xs text-warm-400 leading-relaxed mt-4 pt-4 border-t border-warm-100">
+                    💡 Vous serez prélevé de {formula.amount}€{formula.frequency === 'monthly' && '/mois'},
+                    intégralement reversés à l&apos;association. Un reçu fiscal CERFA vous permettra de
+                    déduire 66% de ce montant de votre impôt sur le revenu lors de votre prochaine
+                    déclaration.
+                  </p>
                 </div>
 
                 {/* Payment provider info */}

@@ -40,11 +40,11 @@ export function Footer() {
   return (
     <footer className="bg-warm-900 text-warm-200" role="contentinfo">
       {/* Main CTA banner */}
-      <div className="bg-gradient-to-r from-primary-500 via-accent-500 to-secondary-500">
+      <div className="bg-primary-500">
         <div className="container-custom py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-display font-bold text-white">
-              Soutenez notre mission 🌍
+              Soutenez notre mission
             </h2>
             <p className="text-white/85 mt-1">
               Chaque don mensuel finance directement l&apos;intégration d&apos;une famille.
@@ -53,14 +53,14 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/adherer-soutenir#don-mensuel"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-600 font-semibold rounded-xl hover:bg-warm-50 transition-colors shadow-warm"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-600 font-semibold rounded-full hover:bg-warm-50 transition-colors shadow-sm"
             >
               <Heart className="w-4 h-4" />
               Faire un don mensuel
             </Link>
             <Link
               href="/adherer-soutenir"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-colors border border-white/30"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-full hover:bg-white/25 transition-colors border border-white/30"
             >
               Adhérer à l&apos;association
               <ArrowRight className="w-4 h-4" />
@@ -125,7 +125,7 @@ export function Footer() {
               </a>
               <div className="flex items-start gap-2 text-sm text-warm-400">
                 <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '45 Boulevard la Fontaine, 67200 Strasbourg'}</span>
+                <span>{process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '1 rue de Graffenstaden, 67380 Lingolsheim'}</span>
               </div>
             </div>
           </div>
@@ -200,12 +200,12 @@ export function Footer() {
             </ul>
 
             {/* Tax deduction info */}
-            <div className="mt-6 p-3 bg-secondary-900/40 border border-secondary-800 rounded-xl">
-              <p className="text-xs text-secondary-400 font-semibold mb-1">
-                💚 Déduction fiscale
+            <div className="mt-6 p-3 bg-warm-800 border-2 border-secondary-500 rounded-xl">
+              <p className="text-xs text-secondary-400 font-bold mb-1 uppercase tracking-wide">
+                Déduction fiscale
               </p>
               <p className="text-xs text-warm-400 leading-relaxed">
-                Vos dons sont déductibles à <strong className="text-white">66%</strong> de 
+                Vos dons sont déductibles à <strong className="text-white">66%</strong> de
                 votre impôt sur le revenu (art. 200 du CGI).
               </p>
             </div>
@@ -221,7 +221,7 @@ export function Footer() {
             Association loi 1901 • RNA : {process.env.NEXT_PUBLIC_RNA || 'WXXXXXXXXXX'}
           </p>
           <p className="text-warm-600 text-xs">
-            Fait avec 💚 en France • Données hébergées en Europe
+            Fait en France • Données hébergées en Europe
           </p>
         </div>
       </div>

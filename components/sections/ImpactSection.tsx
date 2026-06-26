@@ -11,8 +11,7 @@ const STATS = [
     label: 'de cours FLE financés',
     icon: BookOpen,
     color: 'text-primary-500',
-    bg: 'bg-primary-50',
-    border: 'border-primary-100',
+    iconBg: 'bg-primary-100',
     description: 'Cours de français langue étrangère pour adultes',
   },
   {
@@ -21,8 +20,7 @@ const STATS = [
     label: 'familles accompagnées',
     icon: Users,
     color: 'text-secondary-500',
-    bg: 'bg-secondary-50',
-    border: 'border-secondary-100',
+    iconBg: 'bg-secondary-100',
     description: 'Depuis la création de l\'association',
   },
   {
@@ -31,8 +29,7 @@ const STATS = [
     label: 'taux d\'insertion emploi',
     icon: Briefcase,
     color: 'text-accent-600',
-    bg: 'bg-accent-50',
-    border: 'border-accent-100',
+    iconBg: 'bg-accent-100',
     description: 'Des personnes accompagnées ont trouvé un emploi',
   },
   {
@@ -41,8 +38,7 @@ const STATS = [
     label: 'traductions réalisées',
     icon: Languages,
     color: 'text-purple-500',
-    bg: 'bg-purple-50',
-    border: 'border-purple-100',
+    iconBg: 'bg-purple-50',
     description: 'Documents officiels, médecins, écoles',
   },
   {
@@ -51,8 +47,7 @@ const STATS = [
     label: 'jeunes accompagnés',
     icon: Heart,
     color: 'text-pink-500',
-    bg: 'bg-pink-50',
-    border: 'border-pink-100',
+    iconBg: 'bg-pink-50',
     description: 'Soutien scolaire et activités culturelles',
   },
   {
@@ -61,8 +56,7 @@ const STATS = [
     label: 'au service des familles',
     icon: Calendar,
     color: 'text-blue-500',
-    bg: 'bg-blue-50',
-    border: 'border-blue-100',
+    iconBg: 'bg-blue-50',
     description: 'Association fondée en 2018',
   },
 ]
@@ -143,9 +137,9 @@ export function ImpactSection() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.08 }}
             >
-              <div className={`card-hover p-6 md:p-7 border ${stat.border} group`}>
+              <div className="card-hover p-6 md:p-7 group">
                 {/* Icon */}
-                <div className={`w-12 h-12 rounded-xl ${stat.bg} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
+                <div className={`w-12 h-12 rounded-full ${stat.iconBg} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
 
