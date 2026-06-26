@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Aucun abonnement trouvé' }, { status: 404 })
   }
 
-  const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/espace-adherent/gestion-don`
+  const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/espace-adherent`
   const session = await createPortalSession(membership.stripe_customer_id, returnUrl)
 
   return NextResponse.json({ url: session.url })

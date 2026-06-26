@@ -14,9 +14,9 @@ const footerLinks = {
     { label: 'Contact', href: '/contact' },
   ],
   soutenir: [
-    { label: 'Adhérer à l\'association', href: '/adherer-soutenir' },
+    { label: 'Adhérer à l\'association', href: '/adherer-soutenir?formula=simple#don-mensuel' },
     { label: 'Faire un don mensuel', href: '/adherer-soutenir#don-mensuel' },
-    { label: 'Faire un don ponctuel', href: '/adherer-soutenir#don-ponctuel' },
+    { label: 'Faire un don ponctuel', href: '/adherer-soutenir?formula=simple#don-mensuel' },
     { label: 'Espace adhérent', href: '/espace-adherent' },
   ],
   legal: [
@@ -59,7 +59,7 @@ export function Footer() {
               Faire un don mensuel
             </Link>
             <Link
-              href="/adherer-soutenir"
+              href="/adherer-soutenir?formula=simple#don-mensuel"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-full hover:bg-white/25 transition-colors border border-white/30"
             >
               Adhérer à l&apos;association
@@ -156,7 +156,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               {footerLinks.soutenir.map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   <Link
                     href={link.href}
                     className="text-warm-400 hover:text-primary-400 text-sm transition-colors"

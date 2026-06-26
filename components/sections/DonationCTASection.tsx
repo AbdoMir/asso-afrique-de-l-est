@@ -56,10 +56,10 @@ export function DonationCTASection() {
 
               <div className="space-y-4 mb-8">
                 {[
-                  { amount: 5, action: '5€/mois', desc: 'finance 1 heure de FLE par mois', href: '/adherer-soutenir?formula=monthly_5' },
-                  { amount: 10, action: '10€/mois', desc: 'finance le suivi scolaire d\'un enfant', href: '/adherer-soutenir?formula=monthly_10', popular: true },
-                  { amount: 20, action: '20€/mois', desc: 'finance 1 accompagnement vers l\'emploi', href: '/adherer-soutenir?formula=monthly_20' },
-                  { amount: 'simple', action: 'Don ponctuel', desc: 'adhésion simple à partir de 10€, sans engagement', href: '/adherer-soutenir?formula=simple' }
+                  { amount: 5, action: '5€/mois', desc: 'finance 1 heure de FLE par mois', href: '/adherer-soutenir?formula=monthly_5#don-mensuel' },
+                  { amount: 10, action: '10€/mois', desc: 'finance le suivi scolaire d\'un enfant', href: '/adherer-soutenir?formula=monthly_10#don-mensuel', popular: true },
+                  { amount: 20, action: '20€/mois', desc: 'finance 1 accompagnement vers l\'emploi', href: '/adherer-soutenir?formula=monthly_20#don-mensuel' },
+                  { amount: 'simple', action: 'Don ponctuel', desc: 'adhésion simple à partir de 10€, sans engagement', href: '/adherer-soutenir?formula=simple#don-mensuel' }
                 ].map((item) => (
                   <Link href={item.href} key={item.amount} className="block group">
                     <div className={`p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between ${

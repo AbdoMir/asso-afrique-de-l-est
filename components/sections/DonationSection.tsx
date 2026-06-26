@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -136,8 +137,16 @@ function StepIndicator({ step, current }: { step: number; current: number }) {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
+const VALID_FORMULA_IDS = FORMULAS.map((f) => f.id)
+
 export function DonationSection() {
-  const [selectedFormula, setSelectedFormula] = useState<MembershipType>('monthly_10')
+  const searchParams = useSearchParams()
+  const requestedFormula = searchParams.get('formula')
+  const initialFormula = VALID_FORMULA_IDS.includes(requestedFormula as MembershipType)
+    ? (requestedFormula as MembershipType)
+    : 'monthly_10'
+
+  const [selectedFormula, setSelectedFormula] = useState<MembershipType>(initialFormula)
   const [step, setStep] = useState<1 | 2 | 3>(1) // 1: formula, 2: info, 3: payment
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -229,7 +238,7 @@ export function DonationSection() {
   }
 
   return (
-    <section className="section bg-gradient-hero" id="formules">
+    <section className="section bg-gradient-hero" id="don-mensuel">
       <div className="container-custom">
         {/* Steps */}
         <div className="flex items-center justify-center gap-4 mb-12">

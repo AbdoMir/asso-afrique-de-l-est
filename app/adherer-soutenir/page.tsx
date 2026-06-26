@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { Heart, Shield, FileCheck, Clock, ChevronRight } from 'lucide-react'
 import { DonationSection } from '@/components/sections/DonationSection'
 import { AlternativePaymentMethods } from '@/components/sections/AlternativePaymentMethods'
@@ -112,7 +113,9 @@ export default function AdhererSoutenirPage() {
       </section>
 
       {/* Main Donation Section */}
-      <DonationSection />
+      <Suspense fallback={<div className="section text-center text-warm-400">Chargement…</div>}>
+        <DonationSection />
+      </Suspense>
 
       {/* Autres moyens de paiement */}
       <AlternativePaymentMethods />

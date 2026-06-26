@@ -23,6 +23,7 @@ export default function MemberDashboard() {
   const [membership, setMembership] = useState<any>(null)
   const [receipts, setReceipts] = useState<any[]>([])
   const [isMock, setIsMock] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   // Profile Form States
   const [firstName, setFirstName] = useState('')
@@ -274,13 +275,27 @@ export default function MemberDashboard() {
   }
 
   const handleCancelSubscription = async () => {
-    const confirm = window.confirm("Êtes-vous sûr de vouloir résilier votre don mensuel ? Votre soutien est précieux pour les familles que nous accompagnons.")
+    const confirm = window.confirm("Vous allez être redirigé vers le portail sécurisé Stripe pour gérer ou résilier votre don mensuel. Continuer ?")
     if (!confirm) return
 
-    toast({
-      title: 'Action requise',
-      description: 'Pour résilier, veuillez nous contacter directement ou utiliser le portail Stripe dans vos reçus.',
-    })
+    setPortalLoading(true)
+    try {
+      const response = await fetch('/api/stripe/portal', { method: 'POST' })
+      const result = await response.json()
+
+      if (!response.ok || !result.url) {
+        throw new Error(result.error || "Impossible d'ouvrir le portail de gestion.")
+      }
+
+      window.location.href = result.url
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible d\'ouvrir le portail de gestion. Contactez-nous directement.',
+        variant: 'error',
+      })
+      setPortalLoading(false)
+    }
   }
 
   if (loading) {
@@ -476,8 +491,14 @@ export default function MemberDashboard() {
                       <p className="text-warm-500 text-sm">Historique de vos soutiens financiers</p>
                     </div>
                     {membership && membership.status === 'active' && (
-                      <Button variant="ghost" size="sm" onClick={handleCancelSubscription} className="text-red-500 hover:bg-red-50">
-                        Résilier le don mensuel
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancelSubscription}
+                        isLoading={portalLoading}
+                        className="text-red-500 hover:bg-red-50"
+                      >
+                        Gérer / résilier le don mensuel
                       </Button>
                     )}
                   </div>

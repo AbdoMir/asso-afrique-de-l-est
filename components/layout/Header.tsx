@@ -23,6 +23,7 @@ const navigation = [
   },
   { label: 'Nos focus', href: '/nos-focus' },
   { label: 'Partenaires', href: '/partenaires' },
+  { label: 'Adhérer & Soutenir', href: '/adherer-soutenir' },
   { label: 'Contact', href: '/contact' },
 ]
 
