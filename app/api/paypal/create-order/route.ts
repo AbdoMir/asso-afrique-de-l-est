@@ -5,7 +5,7 @@ import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const createOrderSchema = z.object({
   amount: z.number().min(1).max(10000),
-  donor_email: z.string().email().optional(),
+  donor_email: z.string().email().max(254).optional(),
 })
 
 export async function POST(request: NextRequest) {

@@ -10,14 +10,14 @@ import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const subscriptionSchema = z.object({
   formula: z.enum(['monthly_5', 'monthly_10', 'monthly_20']),
-  first_name: z.string().min(1),
-  last_name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  zip_code: z.string().optional(),
-  comment: z.string().optional(),
+  first_name: z.string().min(1).max(100),
+  last_name: z.string().min(1).max(100),
+  email: z.string().email().max(254),
+  phone: z.string().max(20).optional(),
+  address: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  zip_code: z.string().max(10).optional(),
+  comment: z.string().max(2000).optional(),
   newsletter_consent: z.boolean().optional(),
 })
 

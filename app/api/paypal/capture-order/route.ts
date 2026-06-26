@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const captureSchema = z.object({
-  orderId: z.string().min(1),
+  orderId: z.string().min(1).max(100),
 })
 
 export async function POST(request: NextRequest) {

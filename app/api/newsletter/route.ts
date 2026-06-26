@@ -5,8 +5,8 @@ import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const schema = z.object({
-  email: z.string().email(),
-  first_name: z.string().optional(),
+  email: z.string().email().max(254),
+  first_name: z.string().max(100).optional(),
   consent: z.boolean(),
 })
 

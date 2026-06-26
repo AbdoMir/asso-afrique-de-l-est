@@ -5,11 +5,11 @@ import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
 const contactSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  subject: z.string().min(3),
-  message: z.string().min(10),
+  name: z.string().min(2).max(100),
+  email: z.string().email().max(254),
+  phone: z.string().max(20).optional(),
+  subject: z.string().min(3).max(150),
+  message: z.string().min(10).max(2000),
 })
 
 export async function POST(request: NextRequest) {

@@ -12,9 +12,9 @@ const FORM_SLUGS_AND_AMOUNTS: Record<string, { formSlug: string; amount: number 
 
 const checkoutSchema = z.object({
   formula: z.enum(Object.keys(FORM_SLUGS_AND_AMOUNTS) as [string, ...string[]]),
-  first_name: z.string().min(2),
-  last_name: z.string().min(2),
-  email: z.string().email(),
+  first_name: z.string().min(2).max(100),
+  last_name: z.string().min(2).max(100),
+  email: z.string().email().max(254),
   newsletter_consent: z.boolean().optional(),
 })
 
