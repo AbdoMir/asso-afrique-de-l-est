@@ -131,7 +131,7 @@ export function HeroSection() {
                   ))}
                 </div>
                 <div>
-                  <p className="font-semibold text-warm-900 text-sm">+248 familles</p>
+                  <p className="font-semibold text-warm-900 text-sm">+120 familles</p>
                   <p className="text-warm-500 text-xs">nous font confiance</p>
                 </div>
               </div>
@@ -185,7 +185,7 @@ export function HeroSection() {
                     <Users className="w-4.5 h-4.5 text-secondary-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-warm-900 text-base leading-none">248</p>
+                    <p className="font-bold text-warm-900 text-base leading-none">120</p>
                     <p className="text-warm-500 text-[11px]">familles accompagnées</p>
                   </div>
                 </div>

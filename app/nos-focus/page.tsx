@@ -16,7 +16,6 @@ const focuses = [
     icon: Languages,
     desc: 'Lever les barrières linguistiques pour un accès digne aux droits.',
     details: [
-      'Accompagnement physique lors des démarches administratives majeures (préfecture, logement).',
       'Aide à l’interprétariat médical pour garantir un suivi de santé de qualité et sécurisé.',
       'Traduction certifiée ou d’usage de documents officiels, courriers administratifs et scolaires.',
       'Sensibilisation des administrations publiques aux spécificités culturelles de la Corne de l’Afrique.'

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { Heart, Shield, FileCheck, Clock, ChevronRight } from 'lucide-react'
+import { Heart, Shield, FileCheck, Clock, ChevronRight, Users, Bell, Megaphone } from 'lucide-react'
 import { DonationSection } from '@/components/sections/DonationSection'
 import { AlternativePaymentMethods } from '@/components/sections/AlternativePaymentMethods'
 
@@ -38,6 +38,37 @@ const guarantees = [
     description: "Vos dons sont déductibles à 66% de l'impôt sur le revenu.",
     color: 'text-red-500',
     bg: 'bg-red-50',
+  },
+]
+
+const reasons = [
+  {
+    icon: Heart,
+    title: 'Soutenir concrètement l\'intégration',
+    description: 'Votre cotisation finance directement les cours de français, le soutien jeunesse et l\'accompagnement vers l\'emploi des familles que nous accompagnons.',
+    color: 'text-primary-500',
+    bg: 'bg-primary-50',
+  },
+  {
+    icon: Users,
+    title: 'Une communauté solidaire',
+    description: 'Rejoignez un réseau d\'adhérents et de bénévoles engagés autour des mêmes valeurs de solidarité et d\'entraide.',
+    color: 'text-secondary-500',
+    bg: 'bg-secondary-50',
+  },
+  {
+    icon: Bell,
+    title: 'Des informations privilégiées',
+    description: 'Newsletter mensuelle, invitations en avant-première à nos événements et temps forts de la vie associative.',
+    color: 'text-accent-600',
+    bg: 'bg-accent-50',
+  },
+  {
+    icon: Megaphone,
+    title: 'Participer à la vie associative',
+    description: 'En tant qu\'adhérent, vous pouvez prendre part à l\'Assemblée Générale et voter sur les orientations de l\'association.',
+    color: 'text-purple-500',
+    bg: 'bg-purple-50',
   },
 ]
 
@@ -106,6 +137,32 @@ export default function AdhererSoutenirPage() {
                   <p className="font-semibold text-warm-900 text-sm leading-tight">{g.title}</p>
                   <p className="text-warm-500 text-xs leading-snug hidden lg:block">{g.description}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pourquoi adhérer ? */}
+      <section className="section bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <span className="section-badge">Pourquoi adhérer ?</span>
+            <h2 className="section-title">Bien plus qu&apos;un don</h2>
+            <p className="section-subtitle mx-auto">
+              Adhérer à l&apos;association, c&apos;est s&apos;engager concrètement et rejoindre
+              une communauté qui agit au quotidien pour l&apos;intégration des familles.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {reasons.map((r) => (
+              <div key={r.title} className="card-hover p-6 h-full">
+                <div className={`w-12 h-12 blob-3 ${r.bg} flex items-center justify-center mb-5`}>
+                  <r.icon className={`w-6 h-6 ${r.color}`} />
+                </div>
+                <h3 className="font-display font-bold text-lg text-warm-900 mb-2">{r.title}</h3>
+                <p className="text-warm-500 text-sm leading-relaxed">{r.description}</p>
               </div>
             ))}
           </div>

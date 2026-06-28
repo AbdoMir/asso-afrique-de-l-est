@@ -16,8 +16,8 @@ const actions = [
     status: 'Actif',
     desc: 'Des ateliers hebdomadaires d’apprentissage du français par petits groupes de niveau, animés par des formateurs bénévoles qualifiés. L’objectif est de donner l’autonomie de communication indispensable au quotidien.',
     stats: [
-      { label: 'Heures dispensées / an', value: '450h' },
-      { label: 'Bénéficiaires actifs', value: '82 personnes' },
+      { label: 'Heures dispensées / an', value: '320h' },
+      { label: 'Bénéficiaires actifs', value: '50 apprenants' },
       { label: 'Groupes de niveau', value: '4 niveaux' }
     ],
     image: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=600&h=400',
@@ -30,9 +30,9 @@ const actions = [
     status: 'Actif',
     desc: 'Un parcours personnalisé pour aider les adultes à définir un projet professionnel, rédiger leur CV, préparer leurs entretiens et entrer en relation avec des entreprises partenaires prêtes à donner leur chance.',
     stats: [
-      { label: 'Personnes insérées / an', value: '18 actifs' },
+      { label: 'Personnes insérées / an', value: '10 actifs' },
       { label: 'Ateliers de coaching', value: '2 par mois' },
-      { label: 'Entreprises partenaires', value: '9 structures' }
+      { label: 'Entreprises partenaires', value: '6 structures' }
     ],
     image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=600&h=400',
     color: 'text-secondary-500',
@@ -165,12 +165,12 @@ export default function NosActionsPage() {
       {/* Statistics Block */}
       <section className="section bg-warm-50 border-y border-warm-100">
         <div className="container-custom text-center max-w-4xl mx-auto">
-          <h2 className="font-display font-black text-3xl text-warm-900 mb-6">Notre Impact en 2025</h2>
+          <h2 className="font-display font-black text-3xl text-warm-900 mb-6">Notre Impact en 2026</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: '248', label: 'Familles aidées' },
-              { value: '450h', label: 'Cours de FLE' },
-              { value: '18', label: 'Emplois stables' },
+              { value: '120', label: 'Familles aidées' },
+              { value: '320h', label: 'Cours de FLE' },
+              { value: '10', label: 'Emplois stables' },
               { value: '150', label: 'Traductions' }
             ].map((stat) => (
               <div key={stat.label} className="p-6 bg-white rounded-2xl shadow-sm border border-warm-100">

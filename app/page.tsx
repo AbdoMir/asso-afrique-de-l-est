@@ -17,8 +17,8 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <ImpactSection />
       <ActionsPreview />
+      <ImpactSection />
       <FocusPreview />
       <TestimonialsSection />
       <DonationCTASection />

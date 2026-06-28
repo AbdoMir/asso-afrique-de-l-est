@@ -6,7 +6,7 @@ import { BookOpen, Users, Briefcase, Languages, Heart, Calendar } from 'lucide-r
 
 const STATS = [
   {
-    value: 127,
+    value: 15,
     suffix: ' mois',
     label: 'de cours FLE financés',
     icon: BookOpen,
@@ -15,7 +15,7 @@ const STATS = [
     description: 'Cours de français langue étrangère pour adultes',
   },
   {
-    value: 248,
+    value: 120,
     suffix: '',
     label: 'familles accompagnées',
     icon: Users,
@@ -51,13 +51,13 @@ const STATS = [
     description: 'Soutien scolaire et activités culturelles',
   },
   {
-    value: 6,
+    value: 2,
     suffix: ' ans',
     label: 'au service des familles',
     icon: Calendar,
     color: 'text-blue-500',
     iconBg: 'bg-blue-50',
-    description: 'Association fondée en 2018',
+    description: 'Association fondée en 2024',
   },
 ]
 

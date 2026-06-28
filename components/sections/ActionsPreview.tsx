@@ -4,11 +4,23 @@ import React from 'react'
 import Link from 'next/link'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { ArrowRight, BookOpen, Home, GraduationCap } from 'lucide-react'
+import { ArrowRight, BookOpen, Home, Trophy, Compass } from 'lucide-react'
 
 const ACTIONS = [
   {
     id: '1',
+    title: 'Accueil et orientation administrative',
+    description:
+      'Un accompagnement personnalisé pour comprendre et remplir les documents officiels : titre de séjour, allocations, scolarisation, accès aux soins.',
+    status: 'active',
+    beneficiaries: 154,
+    icon: Home,
+    color: 'bg-secondary-500',
+    tags: ['Administratif', 'Toutes situations'],
+    href: '/nos-actions',
+  },
+  {
+    id: '2',
     title: 'Cours de français intensifs (FLE)',
     description:
       'Des cours hebdomadaires de français langue étrangère pour adultes, animés par des bénévoles certifiés. Tous niveaux acceptés, de l\'alphabet aux situations professionnelles.',
@@ -20,27 +32,27 @@ const ACTIONS = [
     href: '/nos-actions',
   },
   {
-    id: '2',
-    title: 'Accueil et orientation administrative',
+    id: '3',
+    title: 'Intégration par le sport',
     description:
-      'Un accompagnement personnalisé pour comprendre et remplir les documents officiels : titre de séjour, allocations, scolarisation, accès aux soins.',
+      'Des activités sportives collectives pour les jeunes de 5 à 20 ans : un vecteur de cohésion, de dépassement de soi et d\'intégration durable.',
     status: 'active',
-    beneficiaries: 154,
-    icon: Home,
-    color: 'bg-secondary-500',
-    tags: ['Administrative', 'Toutes situations'],
+    beneficiaries: 65,
+    icon: Trophy,
+    color: 'bg-accent-600',
+    tags: ['Sport', '5-20 ans'],
     href: '/nos-actions',
   },
   {
-    id: '3',
-    title: 'Atelier "Mon premier CV en France"',
+    id: '4',
+    title: 'Autonomie',
     description:
-      'Un atelier mensuel pour apprendre les codes du CV et de la lettre de motivation à la française, avec des simulations d\'entretien et des conseils RH.',
+      'Un accompagnement global vers une insertion citoyenne et professionnelle complète, pour que chacun devienne pleinement acteur de son parcours en France.',
     status: 'active',
-    beneficiaries: 43,
-    icon: GraduationCap,
-    color: 'bg-accent-600',
-    tags: ['Emploi', 'Mensuel'],
+    beneficiaries: 120,
+    icon: Compass,
+    color: 'bg-warm-700',
+    tags: ['Insertion', 'Citoyenneté'],
     href: '/nos-actions',
   },
 ]
@@ -78,7 +90,7 @@ export function ActionsPreview() {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {ACTIONS.map((action, i) => (
             <motion.div
               key={action.id}
