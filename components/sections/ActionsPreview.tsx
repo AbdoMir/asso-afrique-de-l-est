@@ -18,6 +18,7 @@ const ACTIONS = [
     color: 'bg-secondary-500',
     tags: ['Administratif', 'Toutes situations'],
     href: '/nos-actions',
+    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
     id: '2',
@@ -30,6 +31,7 @@ const ACTIONS = [
     color: 'bg-primary-500',
     tags: ['FLE', 'Adultes', 'Hebdomadaire'],
     href: '/nos-actions',
+    image: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
     id: '3',
@@ -42,6 +44,7 @@ const ACTIONS = [
     color: 'bg-accent-600',
     tags: ['Sport', '5-20 ans'],
     href: '/nos-actions',
+    image: 'https://images.unsplash.com/photo-1598880513655-d1c6d4b2dfbf?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
     id: '4',
@@ -54,6 +57,7 @@ const ACTIONS = [
     color: 'bg-warm-700',
     tags: ['Insertion', 'Citoyenneté'],
     href: '/nos-actions',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=600&h=400',
   },
 ]
 
@@ -98,40 +102,49 @@ export function ActionsPreview() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
-              <Link href={action.href} className="block card-hover p-6 group h-full">
-                {/* Icon */}
-                <div className={`w-12 h-12 blob-3 ${action.color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
-                  <action.icon className="w-6 h-6 text-white" />
+              <Link href={action.href} className="block card-hover overflow-hidden group h-full">
+                {/* Photo + icon overlapping bottom-left */}
+                <div className="relative aspect-[3/2] -m-px mb-0 overflow-hidden">
+                  <img
+                    src={action.image}
+                    alt={action.title}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className={`absolute -bottom-5 left-5 w-12 h-12 blob-3 ${action.color} flex items-center justify-center shadow-card`}>
+                    <action.icon className="w-6 h-6 text-white" />
+                  </div>
                 </div>
 
-                {/* Status badge */}
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary-600 bg-secondary-50 px-2 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 animate-pulse" />
-                    En cours
-                  </span>
-                  <span className="text-xs text-warm-400">
-                    {action.beneficiaries} bénéficiaires
-                  </span>
-                </div>
-
-                <h3 className="font-bold text-warm-900 text-lg mb-3 leading-snug">
-                  {action.title}
-                </h3>
-                <p className="text-warm-600 text-sm leading-relaxed mb-4">
-                  {action.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5">
-                  {action.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2.5 py-1 text-xs font-medium text-warm-600 bg-warm-100 rounded-full"
-                    >
-                      {tag}
+                <div className="p-6 pt-7">
+                  {/* Status badge */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary-600 bg-secondary-50 px-2 py-1 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 animate-pulse" />
+                      En cours
                     </span>
-                  ))}
+                    <span className="text-xs text-warm-400">
+                      {action.beneficiaries} bénéficiaires
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-warm-900 text-lg mb-3 leading-snug">
+                    {action.title}
+                  </h3>
+                  <p className="text-warm-600 text-sm leading-relaxed mb-4">
+                    {action.description}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {action.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2.5 py-1 text-xs font-medium text-warm-600 bg-warm-100 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </Link>
             </motion.div>

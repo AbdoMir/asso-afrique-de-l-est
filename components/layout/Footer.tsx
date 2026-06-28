@@ -88,7 +88,7 @@ export function Footer() {
 
             <p className="text-warm-400 text-sm leading-relaxed mb-6">
               Association loi 1901 accompagnant les familles d&apos;Afrique de l&apos;Est
-              dans leur intégration en France depuis 2018.
+              dans leur intégration en France depuis 2025.
             </p>
 
             {/* Social links */}

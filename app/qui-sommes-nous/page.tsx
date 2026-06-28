@@ -85,7 +85,7 @@ export default function QuiSommesNousPage() {
               Bâtir un pont vers <span className="gradient-text">une intégration harmonieuse</span>
             </h1>
             <p className="text-xl text-warm-600 leading-relaxed max-w-2xl">
-              Depuis 2018, l&apos;Association Afrique de l&apos;Est et ses amis accompagne à Strasbourg les familles
+              Depuis 2025, l&apos;Association Afrique de l&apos;Est et ses amis accompagne à Strasbourg les familles
               originaires de Somalie, du Somaliland, d&apos;Éthiopie, du Soudan, d&apos;Érythrée et de Djibouti dans
               leurs démarches d&apos;insertion en France.
             </p>
@@ -101,7 +101,7 @@ export default function QuiSommesNousPage() {
               <h2 className="section-title">Notre histoire & notre mission</h2>
               <p className="text-warm-600 leading-relaxed mb-6">
                 L’intégration des familles primo-arrivantes est un parcours complexe jalonné d’obstacles administratifs, 
-                linguistiques et sociaux. C&apos;est de ce constat qu’est née l&apos;Association Afrique de l&apos;Est et ses amis en 2018.
+                linguistiques et sociaux. C&apos;est de ce constat qu’est née l&apos;Association Afrique de l&apos;Est et ses amis en 2025.
               </p>
               <p className="text-warm-600 leading-relaxed mb-6">
                 Notre action repose sur une conviction profonde : une intégration réussie passe par l’apprentissage de la langue, 

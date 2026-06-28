@@ -51,13 +51,13 @@ const STATS = [
     description: 'Soutien scolaire et activités culturelles',
   },
   {
-    value: 2,
-    suffix: ' ans',
+    value: 1,
+    suffix: ' an',
     label: 'au service des familles',
     icon: Calendar,
     color: 'text-blue-500',
     iconBg: 'bg-blue-50',
-    description: 'Association fondée en 2024',
+    description: 'Association fondée en 2025',
   },
 ]
 
