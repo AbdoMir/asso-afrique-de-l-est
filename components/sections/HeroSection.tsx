@@ -164,7 +164,7 @@ export function HeroSection() {
             {/* Photo */}
             <div className="relative blob-1 overflow-hidden shadow-blob aspect-[4/5] w-full">
               <Image
-                src="/images/stock/hero-portrait.jpg"
+                src="/images/stock/hero-portrait.webp"
                 alt="Membre de la communauté soutenue par l'association"
                 fill
                 priority
