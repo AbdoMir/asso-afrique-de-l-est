@@ -85,6 +85,19 @@ export type FiscalReceipt = {
   created_at: string
 }
 
+// ─── Member Document ───────────────────────────────────────────────────────────
+
+export type MemberDocument = {
+  id: string
+  user_id: string
+  file_name: string
+  storage_path: string
+  mime_type: string
+  size_bytes: number
+  label?: string
+  created_at: string
+}
+
 // ─── Newsletter ────────────────────────────────────────────────────────────────
 
 export type NewsletterSubscriber = {
@@ -251,6 +264,12 @@ export interface Database {
         Row: FiscalReceipt
         Insert: Omit<FiscalReceipt, 'id' | 'created_at'>
         Update: Partial<Omit<FiscalReceipt, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      member_documents: {
+        Row: MemberDocument
+        Insert: Omit<MemberDocument, 'id' | 'created_at'>
+        Update: Partial<Omit<MemberDocument, 'id' | 'user_id' | 'created_at'>>
         Relationships: []
       }
       newsletter_subscribers: {

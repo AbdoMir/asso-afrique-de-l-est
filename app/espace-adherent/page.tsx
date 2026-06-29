@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  User, CreditCard, FileText, Settings, LogOut, Heart, 
-  AlertTriangle, ShieldCheck, CheckCircle2, Download, Calendar, Mail, Phone, MapPin 
+import {
+  User, CreditCard, FileText, Settings, LogOut, Heart,
+  AlertTriangle, ShieldCheck, CheckCircle2, Download, Calendar, Mail, Phone, MapPin,
+  Paperclip, Trash2, Upload
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -15,15 +16,22 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 
 export default function MemberDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'profile'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'documents' | 'profile'>('overview')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [donations, setDonations] = useState<any[]>([])
   const [membership, setMembership] = useState<any>(null)
   const [receipts, setReceipts] = useState<any[]>([])
+  const [documents, setDocuments] = useState<any[]>([])
   const [isMock, setIsMock] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
+
+  // Document upload state
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadLabel, setUploadLabel] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Profile Form States
   const [firstName, setFirstName] = useState('')
@@ -165,6 +173,17 @@ export default function MemberDashboard() {
           setReceipts(recData)
         }
 
+        // Documents
+        const { data: docData } = await supabase
+          .from('member_documents')
+          .select('*')
+          .eq('user_id', sbUser.id)
+          .order('created_at', { ascending: false })
+
+        if (docData) {
+          setDocuments(docData)
+        }
+
       } catch (err: any) {
         console.error('Error fetching dashboard data:', err)
         toast({
@@ -298,6 +317,95 @@ export default function MemberDashboard() {
     }
   }
 
+  const handleUploadDocument = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!uploadFile) return
+
+    if (isMock) {
+      toast({
+        title: 'Mode Démo',
+        description: "L'envoi de documents n'est pas disponible en mode démo.",
+      })
+      return
+    }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadFile)
+      if (uploadLabel.trim()) formData.append('label', uploadLabel.trim())
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error || "Erreur lors de l'envoi du document.")
+
+      setDocuments((prev) => [result.document, ...prev])
+      setUploadFile(null)
+      setUploadLabel('')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+
+      toast({
+        title: 'Document envoyé',
+        description: 'Votre document a bien été ajouté.',
+        variant: 'success',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || "Impossible d'envoyer le document.",
+        variant: 'error',
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDownloadDocument = async (doc: any) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('member-documents')
+        .createSignedUrl(doc.storage_path, 60)
+
+      if (error || !data) throw error || new Error('Lien indisponible')
+
+      window.open(data.signedUrl, '_blank')
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de générer le lien de téléchargement.',
+        variant: 'error',
+      })
+    }
+  }
+
+  const handleDeleteDocument = async (docId: string) => {
+    const confirmDelete = window.confirm('Supprimer définitivement ce document ?')
+    if (!confirmDelete) return
+
+    try {
+      const response = await fetch(`/api/documents/${docId}`, { method: 'DELETE' })
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error || 'Erreur lors de la suppression.')
+
+      setDocuments((prev) => prev.filter((d) => d.id !== docId))
+      toast({
+        title: 'Document supprimé',
+        variant: 'success',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible de supprimer le document.',
+        variant: 'error',
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
@@ -348,6 +456,7 @@ export default function MemberDashboard() {
                 { id: 'overview', label: 'Tableau de bord', icon: User },
                 { id: 'donations', label: 'Dons & Adhésions', icon: CreditCard },
                 { id: 'receipts', label: 'Reçus fiscaux', icon: FileText },
+                { id: 'documents', label: 'Mes Documents', icon: Paperclip },
                 { id: 'profile', label: 'Mon Profil', icon: Settings },
               ].map((item) => (
                 <button
@@ -604,6 +713,102 @@ export default function MemberDashboard() {
                             <Download className="w-3.5 h-3.5" />
                             Télécharger CERFA
                           </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Tab 4: Documents */}
+              {activeTab === 'documents' && (
+                <motion.div
+                  key="documents"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6"
+                >
+                  <div>
+                    <h3 className="font-display font-black text-2xl text-warm-900">Mes Documents</h3>
+                    <p className="text-warm-500 text-sm">
+                      Conservez ici vos documents administratifs (formulaires, justificatifs...).
+                      Hors documents médicaux.
+                    </p>
+                  </div>
+
+                  {/* Upload form */}
+                  <form
+                    onSubmit={handleUploadDocument}
+                    className="p-5 rounded-2xl border border-dashed border-warm-200 bg-warm-50/50 space-y-4"
+                  >
+                    <Input
+                      id="document-file-input"
+                      ref={fileInputRef}
+                      type="file"
+                      label="Choisir un fichier"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      hint="PDF, JPEG, PNG ou WEBP — 10 Mo maximum"
+                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                    />
+                    <Input
+                      type="text"
+                      label="Description (facultatif)"
+                      placeholder="Ex : Formulaire CAF"
+                      value={uploadLabel}
+                      onChange={(e) => setUploadLabel(e.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="sm"
+                      leftIcon={<Upload className="w-4 h-4" />}
+                      isLoading={uploading}
+                      disabled={!uploadFile}
+                    >
+                      Envoyer le document
+                    </Button>
+                  </form>
+
+                  {documents.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-warm-200 rounded-2xl">
+                      <Paperclip className="w-12 h-12 text-warm-300 mx-auto mb-3" />
+                      <p className="text-warm-500 font-medium">Aucun document envoyé pour le moment.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-4 border border-warm-100 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all bg-white"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center text-warm-600 shrink-0">
+                              <Paperclip className="w-5 h-5 text-primary-500" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-warm-900 truncate">{doc.label || doc.file_name}</p>
+                              <p className="text-xs text-warm-500">
+                                {(doc.size_bytes / 1024).toFixed(0)} Ko • {formatDate(doc.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={() => handleDownloadDocument(doc)}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-2 rounded-lg transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Voir
+                            </button>
+                            <button
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              className="inline-flex items-center justify-center text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                              aria-label="Supprimer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
