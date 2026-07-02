@@ -8,7 +8,10 @@ const SIGNATURES: { mime: string; bytes: number[]; offset?: number }[] = [
 ]
 
 export const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
-export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024 // 10 Mo
+// Vercel limite le corps des requêtes des Serverless Functions à 4,5 Mo
+// (toutes formules confondues) ; au-delà, Vercel rejette la requête avant
+// même que ce code ne s'exécute. On reste sous ce plafond avec une marge.
+export const MAX_DOCUMENT_SIZE_BYTES = 4 * 1024 * 1024 // 4 Mo
 
 export function detectMimeType(buffer: Buffer): string | null {
   for (const sig of SIGNATURES) {

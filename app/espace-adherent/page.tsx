@@ -748,7 +748,7 @@ export default function MemberDashboard() {
                       type="file"
                       label="Choisir un fichier"
                       accept=".pdf,.jpg,.jpeg,.png,.webp"
-                      hint="PDF, JPEG, PNG ou WEBP — 10 Mo maximum"
+                      hint="PDF, JPEG, PNG ou WEBP — 4 Mo maximum"
                       onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                     />
                     <Input
