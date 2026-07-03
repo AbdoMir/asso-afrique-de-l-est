@@ -10,7 +10,7 @@ const TESTIMONIALS = [
     name: 'Amina K.',
     role: 'Éthiopie → Strasbourg (2025)',
     quote:
-      "Grâce aux cours de français que l'association m'a financés, j'ai pu passer mon diplôme d'infirmière en France. Aujourd'hui, j'ai un emploi stable et mes enfants s'épanouissent à l'école. Je suis éternellement reconnaissante.",
+      "Grâce aux cours de français, l'association m'a accompagnée pour intégrer l'école d'infirmière en France. Aujourd'hui, je continue mon cursus. Je suis éternellement reconnaissante.",
     flag: '🇪🇹',
     program: 'Cours FLE + Emploi',
   },
@@ -37,7 +37,7 @@ const TESTIMONIALS = [
     name: 'Saba T.',
     role: 'Érythrée → Strasbourg (2026)',
     quote:
-      "L'équipe m'a accompagné pour créer mon CV, préparer mes entretiens et comprendre le marché du travail français. En 3 mois, j'avais un CDI. Un vrai tremplin vers ma nouvelle vie.",
+      "L'équipe m'a accompagné pour créer mon CV, préparer mes entretiens et comprendre le marché du travail français. En 3 mois, j'ai obtenu un CDD auprès d'une agence d'intérim d'insertion. Un vrai tremplin vers ma nouvelle vie.",
     flag: '🇪🇷',
     program: 'Accompagnement Emploi',
   },

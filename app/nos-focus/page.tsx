@@ -17,7 +17,7 @@ const focuses = [
     desc: 'Lever les barrières linguistiques pour un accès digne aux droits.',
     details: [
       'Aide à l’interprétariat médical pour garantir un suivi de santé de qualité et sécurisé.',
-      'Traduction certifiée ou d’usage de documents officiels, courriers administratifs et scolaires.',
+      'Traduction administrative ou d’usage de documents officiels, courriers administratifs et scolaires.',
       'Sensibilisation des administrations publiques aux spécificités culturelles de la Corne de l’Afrique.'
     ],
     testimonial: {
