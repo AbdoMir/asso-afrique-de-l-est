@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Toaster } from '@/components/ui/Toaster'
+import { Analytics } from '@vercel/analytics/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -73,16 +74,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${inter.variable} ${outfit.variable}`}>
-      <head>
-        {/* Plausible Analytics — RGPD-friendly, sans cookies */}
-        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ? (
-          <script
-            defer
-            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
-            src="https://plausible.io/js/script.js"
-          />
-        ) : null}
-      </head>
       <body className="min-h-screen flex flex-col bg-warm-50">
         <a href="#main-content" className="skip-nav">
           Aller au contenu principal
@@ -93,6 +84,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <Toaster />
+        <Analytics />
       </body>
     </html>
   )
