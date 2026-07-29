@@ -77,12 +77,19 @@ export async function POST(request: NextRequest) {
 
     if (insertError) throw insertError
 
-    await sendAppointmentConfirmation({
+    // La réservation reste valable même si l'email échoue (ex: restriction
+    // sandbox Resend tant qu'aucun domaine n'est vérifié) — on logue l'échec
+    // au lieu de le faire échouer silencieusement.
+    const { error: emailError } = await sendAppointmentConfirmation({
       to: email,
       name,
       type,
       startAt: slot.start_at,
     })
+
+    if (emailError) {
+      console.error('Appointment confirmation email error:', emailError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
