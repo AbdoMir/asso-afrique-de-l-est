@@ -18,7 +18,7 @@ const outfit = Outfit({
   display: 'swap',
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://asso-aes.fr'
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://asso.afrique.est-sa.org'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
