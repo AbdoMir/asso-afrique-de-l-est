@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 import type { AppointmentType } from '@/types'
 
+// La disponibilité des créneaux change à chaque réservation : ne jamais mettre
+// cette route en cache statique (sinon Vercel sert une liste de créneaux périmée).
+export const dynamic = 'force-dynamic'
+
 const VALID_TYPES: AppointmentType[] = ['administratif', 'fle_atelier', 'autre']
 
 export async function GET(request: NextRequest) {
