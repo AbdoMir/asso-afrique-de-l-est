@@ -545,6 +545,16 @@ export default function MemberDashboard() {
                 </button>
               ))}
 
+              {profile?.is_staff && (
+                <button
+                  onClick={() => router.push('/admin/rendez-vous')}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-warm-700 hover:bg-warm-100 hover:text-primary-600 transition-all mt-4 border-t border-warm-100 pt-4"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  Administration
+                </button>
+              )}
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-red-600 hover:bg-red-50 transition-colors mt-4"

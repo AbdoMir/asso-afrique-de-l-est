@@ -10,6 +10,7 @@ export type Profile = {
   city?: string
   zip_code?: string
   country?: string
+  is_staff: boolean
   created_at: string
   updated_at: string
 }
@@ -270,8 +271,9 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Profile, 'id' | 'created_at'>>
+        Insert: Omit<Profile, 'created_at' | 'updated_at' | 'is_staff'> & { is_staff?: boolean }
+        // is_staff n'est jamais modifiable via l'app (grant colonne retiré côté DB, voir 007_staff_role_column_grants_fix.sql)
+        Update: Partial<Omit<Profile, 'id' | 'created_at' | 'is_staff'>>
         Relationships: []
       }
       memberships: {

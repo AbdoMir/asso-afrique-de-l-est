@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
   // listées ici exigent une session. Toute nouvelle zone privée doit y être
   // ajoutée explicitement — la protection réelle des données reste assurée
   // par RLS côté Supabase, ceci n'est qu'une redirection UX.
-  const PROTECTED_PREFIXES = ['/espace-adherent']
+  const PROTECTED_PREFIXES = ['/espace-adherent', '/admin']
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
     request.nextUrl.pathname.startsWith(prefix)
   )
