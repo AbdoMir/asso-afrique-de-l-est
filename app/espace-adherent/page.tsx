@@ -7,16 +7,26 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, CreditCard, FileText, Settings, LogOut, Heart,
   AlertTriangle, ShieldCheck, CheckCircle2, Download, Calendar, Mail, Phone, MapPin,
-  Paperclip, Trash2, Upload
+  Paperclip, Trash2, Upload, Clock, X
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
 import { formatCurrency, formatDate } from '@/lib/utils'
 
+const APPOINTMENT_TYPE_LABELS: Record<string, string> = {
+  administratif: 'Accompagnement administratif',
+  fle_atelier: 'Cours de FLE / Atelier',
+  autre: 'Rendez-vous général',
+}
+
+const appointmentDateTimeFmt = new Intl.DateTimeFormat('fr-FR', {
+  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+})
+
 export default function MemberDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'documents' | 'profile'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'documents' | 'rdv' | 'profile'>('overview')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -24,6 +34,7 @@ export default function MemberDashboard() {
   const [membership, setMembership] = useState<any>(null)
   const [receipts, setReceipts] = useState<any[]>([])
   const [documents, setDocuments] = useState<any[]>([])
+  const [appointments, setAppointments] = useState<any[]>([])
   const [isMock, setIsMock] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
 
@@ -106,6 +117,15 @@ export default function MemberDashboard() {
           { id: 'rec-2', year: 2025, total_amount: 240.0, cerfa_number: 'CERFA-2025-000842' },
         ])
 
+        // Mock Appointments
+        setAppointments([
+          {
+            id: 'rdv-1',
+            status: 'confirmed',
+            appointment_slots: { type: 'administratif', start_at: '2026-08-05T14:00:00Z' },
+          },
+        ])
+
         setLoading(false)
         return
       }
@@ -182,6 +202,26 @@ export default function MemberDashboard() {
 
         if (docData) {
           setDocuments(docData)
+        }
+
+        // Appointments (RDV)
+        const { data: bookingData } = await supabase
+          .from('appointment_bookings')
+          .select('*')
+          .eq('user_id', sbUser.id)
+          .order('created_at', { ascending: false })
+
+        if (bookingData && bookingData.length > 0) {
+          const slotIds = bookingData.map((b: any) => b.slot_id)
+          const { data: slotData } = await supabase
+            .from('appointment_slots')
+            .select('*')
+            .in('id', slotIds)
+
+          const slotsById = new Map((slotData || []).map((s: any) => [s.id, s]))
+          setAppointments(
+            bookingData.map((b: any) => ({ ...b, appointment_slots: slotsById.get(b.slot_id) }))
+          )
         }
 
       } catch (err: any) {
@@ -364,6 +404,37 @@ export default function MemberDashboard() {
     }
   }
 
+  const handleCancelAppointment = async (appointmentId: string) => {
+    const confirmCancel = window.confirm('Annuler ce rendez-vous ?')
+    if (!confirmCancel) return
+
+    if (isMock) {
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === appointmentId ? { ...a, status: 'cancelled' } : a))
+      )
+      toast({ title: 'Rendez-vous annulé', variant: 'success' })
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/rendez-vous/${appointmentId}`, { method: 'DELETE' })
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error || 'Erreur lors de l\'annulation.')
+
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === appointmentId ? { ...a, status: 'cancelled' } : a))
+      )
+      toast({ title: 'Rendez-vous annulé', variant: 'success' })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible d\'annuler ce rendez-vous.',
+        variant: 'error',
+      })
+    }
+  }
+
   const handleDownloadDocument = async (doc: any) => {
     try {
       const { data, error } = await supabase.storage
@@ -457,6 +528,7 @@ export default function MemberDashboard() {
                 { id: 'donations', label: 'Dons & Adhésions', icon: CreditCard },
                 { id: 'receipts', label: 'Reçus fiscaux', icon: FileText },
                 { id: 'documents', label: 'Mes Documents', icon: Paperclip },
+                { id: 'rdv', label: 'Mes RDV', icon: Calendar },
                 { id: 'profile', label: 'Mon Profil', icon: Settings },
               ].map((item) => (
                 <button
@@ -811,6 +883,83 @@ export default function MemberDashboard() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Tab 5: RDV */}
+              {activeTab === 'rdv' && (
+                <motion.div
+                  key="rdv"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-display font-black text-2xl text-warm-900">Mes Rendez-vous</h3>
+                      <p className="text-warm-500 text-sm">Vos réservations passées et à venir</p>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => router.push('/rendez-vous')}>
+                      Prendre RDV
+                    </Button>
+                  </div>
+
+                  {appointments.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-warm-200 rounded-2xl">
+                      <Calendar className="w-12 h-12 text-warm-300 mx-auto mb-3" />
+                      <p className="text-warm-500 font-medium">Vous n&apos;avez aucun rendez-vous pour le moment.</p>
+                      <Button variant="primary" size="sm" className="mt-4" onClick={() => router.push('/rendez-vous')}>
+                        Prendre mon premier rendez-vous
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {appointments.map((appt) => {
+                        const slot = appt.appointment_slots
+                        const isFuture = slot && new Date(slot.start_at) > new Date()
+                        return (
+                          <div
+                            key={appt.id}
+                            className="flex items-center justify-between p-4 border border-warm-100 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all bg-white"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center text-warm-600 shrink-0">
+                                <Clock className="w-5 h-5 text-primary-500" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-warm-900 truncate">
+                                  {slot ? APPOINTMENT_TYPE_LABELS[slot.type] || slot.type : 'Rendez-vous'}
+                                </p>
+                                <p className="text-xs text-warm-500 capitalize">
+                                  {slot ? appointmentDateTimeFmt.format(new Date(slot.start_at)) : ''}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                appt.status === 'confirmed'
+                                  ? 'bg-green-50 text-green-700 border border-green-200'
+                                  : 'bg-warm-100 text-warm-500'
+                              }`}>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                {appt.status === 'confirmed' ? 'Confirmé' : 'Annulé'}
+                              </span>
+                              {appt.status === 'confirmed' && isFuture && (
+                                <button
+                                  onClick={() => handleCancelAppointment(appt.id)}
+                                  className="inline-flex items-center justify-center text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                  aria-label="Annuler"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </motion.div>

@@ -17,6 +17,7 @@ const footerLinks = {
     { label: 'Adhérer à l\'association', href: '/adherer-soutenir?formula=simple#don-mensuel' },
     { label: 'Faire un don mensuel', href: '/adherer-soutenir#don-mensuel' },
     { label: 'Faire un don ponctuel', href: '/adherer-soutenir?formula=simple#don-mensuel' },
+    { label: 'Prendre rendez-vous', href: '/rendez-vous' },
     { label: 'Espace adhérent', href: '/espace-adherent' },
   ],
   legal: [

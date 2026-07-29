@@ -24,6 +24,7 @@ const navigation = [
   { label: 'Nos focus', href: '/nos-focus' },
   { label: 'Partenaires', href: '/partenaires' },
   { label: 'Adhérer & Soutenir', href: '/adherer-soutenir' },
+  { label: 'Prendre RDV', href: '/rendez-vous' },
   { label: 'Contact', href: '/contact' },
 ]
 

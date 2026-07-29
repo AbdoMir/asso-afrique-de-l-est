@@ -98,6 +98,32 @@ export type MemberDocument = {
   created_at: string
 }
 
+// ─── Appointments (rendez-vous) ─────────────────────────────────────────────────
+
+export type AppointmentType = 'administratif' | 'fle_atelier' | 'autre'
+export type AppointmentBookingStatus = 'confirmed' | 'cancelled'
+
+export type AppointmentSlot = {
+  id: string
+  type: AppointmentType
+  start_at: string
+  end_at: string
+  capacity: number
+  created_at: string
+}
+
+export type AppointmentBooking = {
+  id: string
+  slot_id: string
+  user_id?: string
+  guest_name?: string
+  guest_email?: string
+  guest_phone?: string
+  notes?: string
+  status: AppointmentBookingStatus
+  created_at: string
+}
+
 // ─── Newsletter ────────────────────────────────────────────────────────────────
 
 export type NewsletterSubscriber = {
@@ -282,6 +308,18 @@ export interface Database {
         Row: ContactMessage
         Insert: Omit<ContactMessage, 'id' | 'read' | 'created_at'>
         Update: Partial<Omit<ContactMessage, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      appointment_slots: {
+        Row: AppointmentSlot
+        Insert: Omit<AppointmentSlot, 'id' | 'created_at'>
+        Update: Partial<Omit<AppointmentSlot, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      appointment_bookings: {
+        Row: AppointmentBooking
+        Insert: Omit<AppointmentBooking, 'id' | 'status' | 'created_at'> & { status?: AppointmentBookingStatus }
+        Update: Partial<Omit<AppointmentBooking, 'id' | 'created_at'>>
         Relationships: []
       }
     }

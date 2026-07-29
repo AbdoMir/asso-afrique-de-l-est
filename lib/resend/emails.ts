@@ -102,6 +102,62 @@ export async function sendFiscalReceiptEmail(params: {
   })
 }
 
+// ─── Appointment Confirmation Email ─────────────────────────────────────────────
+
+const APPOINTMENT_TYPE_LABELS: Record<string, string> = {
+  administratif: 'Accompagnement administratif',
+  fle_atelier: 'Cours de FLE / Atelier',
+  autre: 'Rendez-vous général',
+}
+
+export async function sendAppointmentConfirmation(params: {
+  to: string
+  name: string
+  type: string
+  startAt: string
+}) {
+  const typeLabel = APPOINTMENT_TYPE_LABELS[params.type] || params.type
+  const formattedDate = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(params.startAt))
+
+  return resend.emails.send({
+    from: FROM,
+    to: params.to,
+    reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
+    subject: `Confirmation de votre rendez-vous — Association Afrique de l'Est et ses amis`,
+    html: `
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head><meta charset="UTF-8"></head>
+      <body style="margin:0;padding:0;background:#FEFAF5;font-family:system-ui,sans-serif;">
+        <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
+          <div style="background:#E8702A;padding:24px;border-radius:16px 16px 0 0;text-align:center;">
+            <h1 style="color:#fff;margin:0;font-size:22px;">📅 Rendez-vous confirmé</h1>
+          </div>
+          <div style="background:#fff;padding:32px;border-radius:0 0 16px 16px;">
+            <p>Bonjour ${escapeHtml(params.name)},</p>
+            <p>Votre rendez-vous est bien confirmé :</p>
+            <div style="background:#F5F0E8;padding:16px;border-radius:8px;margin:16px 0;">
+              <p style="margin:0 0 4px;color:#1A1A1A;"><strong>${escapeHtml(typeLabel)}</strong></p>
+              <p style="margin:0;color:#4A4A4A;">${escapeHtml(formattedDate)}</p>
+            </div>
+            <p style="color:#666;font-size:14px;">
+              Pour annuler ou modifier ce rendez-vous, répondez à cet email ou contactez-nous directement.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  })
+}
+
 // ─── Contact Confirmation Email ─────────────────────────────────────────────────
 
 export async function sendContactConfirmation(params: {
