@@ -6,7 +6,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await requireStaff()
+  const { error } = await requireStaff(request)
   if (error) return error
 
   const { id } = await params

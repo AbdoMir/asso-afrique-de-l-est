@@ -5,7 +5,7 @@ import { requireStaff } from '@/lib/admin-guard'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const { error } = await requireStaff()
+  const { error } = await requireStaff(request)
   if (error) return error
 
   const includeCancelled = request.nextUrl.searchParams.get('includeCancelled') === 'true'
