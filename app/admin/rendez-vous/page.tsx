@@ -55,7 +55,26 @@ export default function AdminRendezVousPage() {
           return
         }
         const { data: profile } = await supabase.from('profiles').select('is_staff').eq('id', user.id).single()
-        setIsStaff(!!profile?.is_staff)
+        if (!profile?.is_staff) {
+          setIsStaff(false)
+          return
+        }
+
+        // La 2FA est obligatoire pour le staff (voir lib/admin-guard.ts) :
+        // sans facteur enrole, direction la page d'activation ; avec un
+        // facteur mais une session non elevee (aal1), retour au login.
+        const { data: factorsData } = await supabase.auth.mfa.listFactors()
+        if (!factorsData?.totp?.length) {
+          router.push('/admin/securite')
+          return
+        }
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        if (aal?.currentLevel !== 'aal2') {
+          router.push('/login?redirect=/admin/rendez-vous')
+          return
+        }
+
+        setIsStaff(true)
       } catch (e) {
         console.error('Access check failed', e)
       } finally {

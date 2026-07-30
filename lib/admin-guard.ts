@@ -28,5 +28,17 @@ export async function requireStaff(request: NextRequest) {
     return { error: NextResponse.json({ error: 'Accès refusé' }, { status: 403 }) }
   }
 
+  // La 2FA est obligatoire pour le staff : un mot de passe seul ne doit pas
+  // suffire a acceder aux donnees admin (adherents, messages de contact...).
+  const { data: factors } = await supabase.auth.mfa.listFactors()
+  if (!factors?.totp?.length) {
+    return { error: NextResponse.json({ error: 'MFA_NOT_ENROLLED', message: 'Double authentification requise. Rendez-vous sur /admin/securite.' }, { status: 403 }) }
+  }
+
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aal?.currentLevel !== 'aal2') {
+    return { error: NextResponse.json({ error: 'MFA_REQUIRED', message: 'Veuillez vous reconnecter avec votre code de double authentification.' }, { status: 403 }) }
+  }
+
   return { user }
 }

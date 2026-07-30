@@ -4,7 +4,7 @@ import React, { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { Globe, Mail, Lock, User, Phone, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react'
+import { Globe, Mail, Lock, User, Phone, CheckCircle, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
@@ -15,17 +15,22 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/espace-adherent'
   
-  const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'forgot'>('login')
+  const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'forgot' | 'mfa'>('login')
   const [loading, setLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
-  
+
   // Form fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
+
+  // Défi de double authentification (comptes staff uniquement)
+  const [mfaFactorId, setMfaFactorId] = useState('')
+  const [mfaChallengeId, setMfaChallengeId] = useState('')
+  const [mfaCode, setMfaCode] = useState('')
 
   // Supabase component client
   // Using try/catch to avoid crash if env vars are missing
@@ -79,6 +84,27 @@ function LoginForm() {
 
       if (error) throw error
 
+      // Comptes staff : un facteur de double authentification declenche un
+      // defi supplementaire avant d'ouvrir la session (mot de passe seul
+      // insuffisant). Les adherents sans MFA passent directement ci-dessous.
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+        const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors()
+        if (factorsError) throw factorsError
+
+        const totpFactor = factorsData?.totp?.[0]
+        if (!totpFactor) throw new Error('Aucun facteur de double authentification trouvé.')
+
+        const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: totpFactor.id })
+        if (challengeError) throw challengeError
+
+        setMfaFactorId(totpFactor.id)
+        setMfaChallengeId(challenge.id)
+        setActiveTab('mfa')
+        setLoading(false)
+        return
+      }
+
       toast({
         title: 'Connexion réussie',
         description: 'Ravi de vous revoir !',
@@ -92,6 +118,37 @@ function LoginForm() {
       toast({
         title: 'Erreur de connexion',
         description: err.message || 'Veuillez vérifier vos identifiants',
+        variant: 'error',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setErrorMsg('')
+
+    try {
+      const { error } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: mfaChallengeId,
+        code: mfaCode,
+      })
+      if (error) throw error
+
+      toast({
+        title: 'Connexion réussie',
+        description: 'Ravi de vous revoir !',
+        variant: 'success',
+      })
+      window.location.href = redirect
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Code invalide.')
+      toast({
+        title: 'Code invalide',
+        description: err.message || 'Veuillez réessayer.',
         variant: 'error',
       })
     } finally {
@@ -229,11 +286,13 @@ function LoginForm() {
               {activeTab === 'login' && 'Espace adhérent'}
               {activeTab === 'signup' && 'Devenir membre'}
               {activeTab === 'forgot' && 'Mot de passe oublié'}
+              {activeTab === 'mfa' && 'Vérification en deux étapes'}
             </h1>
             <p className="text-warm-500 text-sm mt-1.5">
               {activeTab === 'login' && 'Connectez-vous pour suivre vos dons et reçus.'}
               {activeTab === 'signup' && 'Rejoignez-nous et soutenez nos actions.'}
               {activeTab === 'forgot' && 'Saisissez votre email pour réinitialiser.'}
+              {activeTab === 'mfa' && 'Entrez le code généré par votre application d\'authentification.'}
             </p>
           </div>
 
@@ -434,6 +493,44 @@ function LoginForm() {
                     connexion
                   </button>
                 </p>
+              </motion.form>
+            )}
+
+            {activeTab === 'mfa' && (
+              <motion.form
+                key="mfa"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                onSubmit={handleMfaVerify}
+                className="space-y-4"
+              >
+                <div className="flex items-center gap-2 text-secondary-600 text-sm font-semibold mb-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  Compte protégé par double authentification
+                </div>
+
+                <Input
+                  type="text"
+                  label="Code à 6 chiffres"
+                  placeholder="123456"
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  leftAddon={<ShieldCheck className="w-4 h-4" />}
+                />
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full justify-center mt-6"
+                  isLoading={loading}
+                >
+                  Valider
+                </Button>
               </motion.form>
             )}
           </AnimatePresence>

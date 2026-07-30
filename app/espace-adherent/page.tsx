@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, CreditCard, FileText, Settings, LogOut, Heart,
   AlertTriangle, ShieldCheck, CheckCircle2, Download, Calendar, Mail, Phone, MapPin,
-  Paperclip, Trash2, Upload, Clock, X
+  Paperclip, Trash2, Upload, Clock, X, KeyRound
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -549,13 +549,22 @@ export default function MemberDashboard() {
               ))}
 
               {profile?.is_staff && (
-                <button
-                  onClick={() => router.push('/admin/rendez-vous')}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-warm-700 hover:bg-warm-100 hover:text-primary-600 transition-all mt-4 border-t border-warm-100 pt-4"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  Administration
-                </button>
+                <>
+                  <button
+                    onClick={() => router.push('/admin/rendez-vous')}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-warm-700 hover:bg-warm-100 hover:text-primary-600 transition-all mt-4 border-t border-warm-100 pt-4"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Administration
+                  </button>
+                  <button
+                    onClick={() => router.push('/admin/securite')}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-warm-700 hover:bg-warm-100 hover:text-primary-600 transition-all"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    Sécurité
+                  </button>
+                </>
               )}
 
               <button
