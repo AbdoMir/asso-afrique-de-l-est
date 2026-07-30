@@ -5,6 +5,9 @@ export const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM = `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL}>`
 
+// DIAGNOSTIC TEMPORAIRE - a retirer une fois le probleme de format resolu
+console.log('DEBUG_FROM_VALUE', JSON.stringify({ name: process.env.RESEND_FROM_NAME, email: process.env.RESEND_FROM_EMAIL, computed: FROM }))
+
 // ─── Welcome Email ─────────────────────────────────────────────────────────────
 
 export async function sendWelcomeEmail(params: {
