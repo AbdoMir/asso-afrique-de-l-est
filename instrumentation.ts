@@ -1,12 +1,13 @@
 // Validation des variables d'environnement critiques au démarrage du serveur.
 // Sans ça, une variable manquante n'est détectée qu'au premier appel du code
 // qui en a besoin (ex: au premier paiement), bien après la mise en ligne.
+// Stripe volontairement absent de cette liste : l'association utilise
+// HelloAsso comme moyen de paiement principal. Les routes Stripe restent
+// dans le code mais ne bloquent plus le demarrage si les cles sont absentes.
 const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
-  'STRIPE_SECRET_KEY',
-  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
 ]
 
 export function register() {
