@@ -523,14 +523,17 @@ export default function MemberDashboard() {
             
             {/* Nav Menu */}
             <div className="space-y-1.5 text-left border-t border-warm-100 pt-6">
-              {[
-                { id: 'overview', label: 'Tableau de bord', icon: User },
-                { id: 'donations', label: 'Dons & Adhésions', icon: CreditCard },
-                { id: 'receipts', label: 'Reçus fiscaux', icon: FileText },
-                { id: 'documents', label: 'Mes Documents', icon: Paperclip },
-                { id: 'rdv', label: 'Mes RDV', icon: Calendar },
-                { id: 'profile', label: 'Mon Profil', icon: Settings },
-              ].map((item) => (
+              {(profile?.is_staff
+                ? [{ id: 'overview', label: 'Tableau de bord', icon: User }]
+                : [
+                    { id: 'overview', label: 'Tableau de bord', icon: User },
+                    { id: 'donations', label: 'Dons & Adhésions', icon: CreditCard },
+                    { id: 'receipts', label: 'Reçus fiscaux', icon: FileText },
+                    { id: 'documents', label: 'Mes Documents', icon: Paperclip },
+                    { id: 'rdv', label: 'Mes RDV', icon: Calendar },
+                    { id: 'profile', label: 'Mon Profil', icon: Settings },
+                  ]
+              ).map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as any)}
@@ -644,24 +647,35 @@ export default function MemberDashboard() {
                   <div className="border-t border-warm-100 pt-6">
                     <h4 className="font-bold text-warm-900 mb-4 text-sm uppercase tracking-wider">Liens rapides</h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      <button 
-                        onClick={() => setActiveTab('receipts')}
-                        className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
-                      >
-                        📄 Télécharger mes reçus
-                      </button>
-                      <button 
-                        onClick={() => setActiveTab('profile')}
-                        className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
-                      >
-                        ⚙️ Modifier mes coordonnées
-                      </button>
-                      <button 
-                        onClick={() => router.push('/adherer-soutenir')}
-                        className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
-                      >
-                        💚 Soutenir à nouveau
-                      </button>
+                      {profile?.is_staff ? (
+                        <button
+                          onClick={() => router.push('/admin/rendez-vous')}
+                          className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
+                        >
+                          🛠️ Aller à l&apos;administration
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setActiveTab('receipts')}
+                            className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
+                          >
+                            📄 Télécharger mes reçus
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('profile')}
+                            className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
+                          >
+                            ⚙️ Modifier mes coordonnées
+                          </button>
+                          <button
+                            onClick={() => router.push('/adherer-soutenir')}
+                            className="p-3 text-left border border-warm-100 hover:border-primary-200 rounded-xl hover:bg-warm-50 text-sm font-semibold transition-colors"
+                          >
+                            💚 Soutenir à nouveau
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </motion.div>
