@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Users, Trash2, X, ShieldAlert, Loader2 } from 'lucide-react'
+import { Calendar, Users, Trash2, X, ShieldAlert, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
@@ -31,6 +31,7 @@ export default function AdminRendezVousPage() {
   const [bookings, setBookings] = useState<any[]>([])
   const [showPast, setShowPast] = useState(false)
   const [showCancelled, setShowCancelled] = useState(false)
+  const [expandedSlotId, setExpandedSlotId] = useState<string | null>(null)
 
   const [type, setType] = useState<AppointmentType>('administratif')
   const [date, setDate] = useState('')
@@ -236,6 +237,7 @@ export default function AdminRendezVousPage() {
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-warm-100 text-warm-400 font-semibold text-xs uppercase">
+                        <th className="pb-3"></th>
                         <th className="pb-3">Type</th>
                         <th className="pb-3">Date</th>
                         <th className="pb-3">Horaire</th>
@@ -246,24 +248,67 @@ export default function AdminRendezVousPage() {
                     <tbody>
                       {slots.map((slot) => {
                         const isFull = slot.booked >= slot.capacity
+                        const isExpanded = expandedSlotId === slot.id
+                        const slotBookings = bookings.filter((b) => b.slot_id === slot.id && b.status === 'confirmed')
                         return (
-                          <tr key={slot.id} className="border-b border-warm-50">
-                            <td className="py-3 font-semibold text-warm-900">{TYPE_LABELS[slot.type] || slot.type}</td>
-                            <td className="py-3 text-warm-600">{dateFmt.format(new Date(slot.start_at))}</td>
-                            <td className="py-3 text-warm-600">{timeFmt.format(new Date(slot.start_at))} – {timeFmt.format(new Date(slot.end_at))}</td>
-                            <td className="py-3">
-                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                isFull ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
-                              }`}>
-                                <Users className="w-3.5 h-3.5" />{slot.booked} / {slot.capacity}
-                              </span>
-                            </td>
-                            <td className="py-3 text-right">
-                              <button onClick={() => handleDeleteSlot(slot.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" aria-label="Supprimer">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
+                          <React.Fragment key={slot.id}>
+                            <tr
+                              className="border-b border-warm-50 cursor-pointer hover:bg-warm-50/50"
+                              onClick={() => setExpandedSlotId(isExpanded ? null : slot.id)}
+                            >
+                              <td className="py-3 pl-1 text-warm-400">
+                                {slot.booked > 0 ? (isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />) : null}
+                              </td>
+                              <td className="py-3 font-semibold text-warm-900">{TYPE_LABELS[slot.type] || slot.type}</td>
+                              <td className="py-3 text-warm-600">{dateFmt.format(new Date(slot.start_at))}</td>
+                              <td className="py-3 text-warm-600">{timeFmt.format(new Date(slot.start_at))} – {timeFmt.format(new Date(slot.end_at))}</td>
+                              <td className="py-3">
+                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                  isFull ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'
+                                }`}>
+                                  <Users className="w-3.5 h-3.5" />{slot.booked} / {slot.capacity}
+                                </span>
+                              </td>
+                              <td className="py-3 text-right">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteSlot(slot.id) }}
+                                  className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                  aria-label="Supprimer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                            {isExpanded && (
+                              <tr className="bg-warm-50/50">
+                                <td colSpan={6} className="py-3 px-4">
+                                  {slotBookings.length === 0 ? (
+                                    <p className="text-xs text-warm-400">Aucun inscrit confirmé pour ce créneau.</p>
+                                  ) : (
+                                    <ul className="space-y-2">
+                                      {slotBookings.map((b) => {
+                                        const isMember = !!b.profiles
+                                        const name = isMember
+                                          ? `${b.profiles.first_name || ''} ${b.profiles.last_name || ''}`.trim() || '(adhérent)'
+                                          : b.guest_name || '(invité)'
+                                        const email = isMember ? b.profiles.email : b.guest_email
+                                        const phone = isMember ? b.profiles.phone : b.guest_phone
+                                        return (
+                                          <li key={b.id} className="text-sm flex flex-wrap items-baseline gap-x-2">
+                                            <span className="font-semibold text-warm-900">{name}</span>
+                                            {isMember && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-600">adhérent</span>}
+                                            <span className="text-warm-500">{email}</span>
+                                            {phone && <span className="text-warm-400">· {phone}</span>}
+                                            {b.notes && <span className="text-warm-400 italic">— {b.notes}</span>}
+                                          </li>
+                                        )
+                                      })}
+                                    </ul>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         )
                       })}
                     </tbody>
