@@ -244,7 +244,7 @@ export default function SecuritePage() {
               <div className="bg-white p-4 border border-warm-100 rounded-2xl inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`data:image/svg+xml;utf8,${encodeURIComponent(qrCode)}`}
+                  src={qrCode}
                   alt="QR code de double authentification"
                   width={180}
                   height={180}
