@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { Heart, Shield, FileCheck, Clock, ChevronRight, Users, Bell, Megaphone } from 'lucide-react'
@@ -14,14 +15,14 @@ const guarantees = [
   {
     icon: Shield,
     title: 'Paiement 100% sécurisé',
-    description: 'HelloAsso et Stripe assurent la sécurité de vos transactions.',
+    description: 'HelloAsso assure la sécurité de vos transactions.',
     color: 'text-secondary-500',
     bg: 'bg-secondary-50',
   },
   {
     icon: FileCheck,
     title: 'Reçu fiscal automatique',
-    description: 'Votre reçu CERFA 11580*03 vous est envoyé chaque janvier.',
+    description: 'Votre reçu CERFA 11580*03 vous est envoyé par HelloAsso.',
     color: 'text-primary-500',
     bg: 'bg-primary-50',
   },
@@ -85,7 +86,7 @@ export default function AdhererSoutenirPage() {
           {/* Breadcrumb */}
           <nav aria-label="Fil d'Ariane" className="mb-6">
             <ol className="flex items-center gap-2 text-sm text-warm-500">
-              <li><a href="/" className="hover:text-primary-500 transition-colors">Accueil</a></li>
+              <li><Link href="/" className="hover:text-primary-500 transition-colors">Accueil</Link></li>
               <li><ChevronRight className="w-4 h-4" /></li>
               <li className="text-warm-700 font-medium">Adhérer & Soutenir</li>
             </ol>
@@ -111,7 +112,7 @@ export default function AdhererSoutenirPage() {
               {[
                 { value: '5€', label: 'par mois', sub: 'pour commencer' },
                 { value: '66%', label: 'déductibles', sub: 'des impôts' },
-                { value: '100%', label: 'sécurisé', sub: 'HelloAsso & Stripe' },
+                { value: '100%', label: 'sécurisé', sub: 'HelloAsso' },
               ].map((stat) => (
                 <div key={stat.label} className="text-center p-3 bg-white/80 rounded-xl shadow-sm border border-warm-100">
                   <div className="text-2xl font-black font-display text-primary-500">{stat.value}</div>
@@ -231,7 +232,7 @@ export default function AdhererSoutenirPage() {
             {[
               {
                 q: 'Comment obtenir mon reçu fiscal ?',
-                a: 'Votre reçu fiscal (CERFA 11580*03) vous sera envoyé automatiquement par email chaque mois de janvier, pour l\'ensemble de vos dons de l\'année précédente. Vous pouvez également le télécharger à tout moment dans votre espace adhérent.',
+                a: 'Vos paiements sont encaissés par HelloAsso, qui édite et vous envoie automatiquement votre reçu fiscal (CERFA 11580*03) par email, à l\'adresse utilisée lors du paiement. Vous le retrouvez également à tout moment depuis votre compte HelloAsso, rubrique « Mes paiements ».',
               },
               {
                 q: 'Comment annuler mon don mensuel ?',
@@ -239,7 +240,7 @@ export default function AdhererSoutenirPage() {
               },
               {
                 q: 'Mes données sont-elles sécurisées ?',
-                a: 'Absolument. Vos données personnelles et bancaires sont protégées conformément au RGPD. Les paiements sont traités par HelloAsso et Stripe, certifiés PCI-DSS. Nous ne stockons jamais vos informations bancaires.',
+                a: 'Absolument. Vos données personnelles et bancaires sont protégées conformément au RGPD. Les paiements sont traités par HelloAsso, certifié PCI-DSS. Nous ne stockons jamais vos informations bancaires.',
               },
               {
                 q: 'Puis-je modifier le montant de mon don ?',

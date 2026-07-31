@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireStaff } from '@/lib/admin-guard'
 
 export const dynamic = 'force-dynamic'
+
+// Même exigence de validation que sur les routes publiques : un compte staff
+// compromis ne doit pas pouvoir insérer des créneaux incohérents (capacité
+// négative, dates inversées) que le reste de l'app tient pour valides.
+const slotSchema = z
+  .object({
+    type: z.enum(['administratif', 'fle_atelier', 'autre']),
+    start_at: z.string().datetime({ offset: true }),
+    end_at: z.string().datetime({ offset: true }),
+    capacity: z.number().int().min(1).max(100),
+  })
+  .refine((s) => new Date(s.end_at) > new Date(s.start_at), {
+    message: 'La fin du créneau doit suivre son début.',
+    path: ['end_at'],
+  })
 
 export async function GET(request: NextRequest) {
   const { error } = await requireStaff(request)
@@ -40,12 +56,26 @@ export async function POST(request: NextRequest) {
   const { error } = await requireStaff(request)
   if (error) return error
 
-  const { type, start_at, end_at, capacity } = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })
+  }
+
+  const validated = slotSchema.safeParse(body)
+  if (!validated.success) {
+    return NextResponse.json(
+      { error: 'Données invalides', details: validated.error.flatten() },
+      { status: 400 }
+    )
+  }
+
   const supabase = createAdminClient()
 
   const { error: insertError } = await supabase
     .from('appointment_slots')
-    .insert({ type, start_at, end_at, capacity })
+    .insert(validated.data)
 
   if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
 

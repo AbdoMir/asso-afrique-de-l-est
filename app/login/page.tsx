@@ -3,7 +3,7 @@
 import React, { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { createClient } from '@/lib/supabase/client'
+import { createClientSafe, DEMO_MODE_ALLOWED } from '@/lib/supabase/client'
 import { Globe, Mail, Lock, User, Phone, CheckCircle, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -18,7 +18,13 @@ function LoginForm() {
   const [activeTab, setActiveTab] = useState<'login' | 'signup' | 'forgot' | 'mfa'>('login')
   const [loading, setLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
-  const [errorMsg, setErrorMsg] = useState('')
+  // Message initial : /api/auth/callback redirige ici avec ?error=auth_callback
+  // quand l'échange du lien de connexion échoue (lien expiré ou déjà utilisé).
+  const [errorMsg, setErrorMsg] = useState(
+    searchParams.get('error') === 'auth_callback'
+      ? 'Ce lien de connexion est invalide ou a expiré. Merci de vous reconnecter.'
+      : ''
+  )
 
   // Form fields
   const [email, setEmail] = useState('')
@@ -32,24 +38,24 @@ function LoginForm() {
   const [mfaChallengeId, setMfaChallengeId] = useState('')
   const [mfaCode, setMfaCode] = useState('')
 
-  // Supabase component client
-  // Using try/catch to avoid crash if env vars are missing
-  let supabase: any = null
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      supabase = createClient()
-    }
-  } catch (e) {
-    console.error('Supabase init failed', e)
-  }
+  const supabase = createClientSafe()
 
-  const isMockMode = !supabase
+  // Sans Supabase, on ne simule une session qu'en développement : en
+  // production cela reviendrait à accepter n'importe quel mot de passe.
+  const isMockMode = !supabase && DEMO_MODE_ALLOWED
+  const isUnavailable = !supabase && !DEMO_MODE_ALLOWED
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isUnavailable) {
+      setErrorMsg("Le service d'authentification est momentanément indisponible.")
+      return
+    }
+
     setLoading(true)
     setErrorMsg('')
-    
+
     if (isMockMode) {
       // Simulate login
       setTimeout(() => {
@@ -75,6 +81,9 @@ function LoginForm() {
       }, 1000)
       return
     }
+
+    // Les deux cas sans client (démo, indisponible) sont traités au-dessus.
+    if (!supabase) return
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -130,6 +139,9 @@ function LoginForm() {
     setLoading(true)
     setErrorMsg('')
 
+    // Les cas sans client (démo, indisponible) sont traités en amont.
+    if (!supabase) return
+
     try {
       const { error } = await supabase.auth.mfa.verify({
         factorId: mfaFactorId,
@@ -158,6 +170,12 @@ function LoginForm() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (isUnavailable) {
+      setErrorMsg("Le service d'inscription est momentanément indisponible.")
+      return
+    }
+
     setLoading(true)
     setErrorMsg('')
 
@@ -184,6 +202,9 @@ function LoginForm() {
       }, 1000)
       return
     }
+
+    // Les deux cas sans client (démo, indisponible) sont traités au-dessus.
+    if (!supabase) return
 
     try {
       const { error } = await supabase.auth.signUp({
@@ -233,6 +254,9 @@ function LoginForm() {
       return
     }
 
+    // Les cas sans client (démo, indisponible) sont traités en amont.
+    if (!supabase) return
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/api/auth/callback?redirect=/espace-adherent/nouveau-mot-de-passe`,
@@ -255,7 +279,22 @@ function LoginForm() {
       <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-secondary-100/30 translate-y-1/2 -translate-x-1/4 blur-3xl pointer-events-none" />
 
       <div className="max-w-md w-full relative z-10">
-        
+
+        {/* Configuration Supabase absente en production : on refuse l'accès
+            plutôt que de basculer en authentification simulée. */}
+        {isUnavailable && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex gap-3 text-red-800 text-sm">
+            <AlertTriangle className="w-5 h-5 shrink-0 text-red-600" />
+            <div>
+              <p className="font-semibold">Connexion momentanément indisponible</p>
+              <p className="text-red-700/95 mt-0.5">
+                Le service d&apos;authentification n&apos;est pas joignable. Merci de réessayer
+                plus tard ou de nous contacter directement.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Mock alert */}
         {isMockMode && (
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3 text-amber-800 text-sm">

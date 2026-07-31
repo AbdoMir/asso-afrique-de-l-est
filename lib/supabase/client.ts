@@ -17,3 +17,28 @@ export function createClient() {
 
   return createBrowserClient<Database>(url, anonKey)
 }
+
+/**
+ * Le mode démo simule une session à partir du localStorage, sans aucune
+ * vérification : n'importe quel identifiant est accepté. Il n'a de sens qu'en
+ * développement, quand Supabase n'est pas encore configuré.
+ *
+ * En production, une configuration Supabase absente doit se traduire par un
+ * service indisponible — surtout pas par une authentification factice qui
+ * ouvrirait l'espace adhérent à tout le monde.
+ */
+export const DEMO_MODE_ALLOWED = process.env.NODE_ENV !== 'production'
+
+/**
+ * Variante non bloquante de `createClient()` : renvoie `null` au lieu de lever
+ * lorsque la configuration manque, pour laisser l'appelant afficher un état
+ * dégradé plutôt que de faire planter le rendu.
+ */
+export function createClientSafe() {
+  try {
+    return createClient()
+  } catch (error) {
+    console.error('Supabase init failed', error)
+    return null
+  }
+}

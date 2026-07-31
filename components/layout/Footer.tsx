@@ -24,7 +24,7 @@ const footerLinks = {
     { label: 'Mentions légales', href: '/legal/mentions-legales' },
     { label: 'Politique de confidentialité', href: '/legal/confidentialite' },
     { label: 'Statuts de l\'association', href: '/legal/statuts' },
-    { label: 'Reçus fiscaux CERFA', href: '/espace-adherent/recus-fiscaux' },
+    { label: 'Reçus fiscaux CERFA', href: '/espace-adherent' },
   ],
 }
 
@@ -174,7 +174,7 @@ export function Footer() {
                 <Shield className="w-3.5 h-3.5 text-secondary-400" />
                 Paiement sécurisé via
               </p>
-              <p className="text-sm font-semibold text-white">HelloAsso & Stripe</p>
+              <p className="text-sm font-semibold text-white">HelloAsso</p>
               <p className="text-xs text-warm-500 mt-1">
                 Reçu fiscal automatique chaque janvier
               </p>

@@ -14,7 +14,11 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, hint, leftAddon, rightAddon, required, id, ...props }, ref) => {
-    const inputId = id || React.useId()
+    // `useId()` doit être appelé inconditionnellement : avec `id || useId()`,
+    // le hook était sauté dès qu'un `id` était fourni, changeant l'ordre des
+    // hooks d'un rendu à l'autre selon la présence de la prop.
+    const generatedId = React.useId()
+    const inputId = id || generatedId
 
     return (
       <div className="w-full">
@@ -79,7 +83,11 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, hint, required, id, ...props }, ref) => {
-    const inputId = id || React.useId()
+    // `useId()` doit être appelé inconditionnellement : avec `id || useId()`,
+    // le hook était sauté dès qu'un `id` était fourni, changeant l'ordre des
+    // hooks d'un rendu à l'autre selon la présence de la prop.
+    const generatedId = React.useId()
+    const inputId = id || generatedId
 
     return (
       <div className="w-full">

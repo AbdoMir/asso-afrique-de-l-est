@@ -42,8 +42,25 @@ interface Bucket {
 }
 const memoryBuckets = new Map<string, Bucket>()
 
+// Au-delà de ce nombre de compteurs, on balaie la table pour retirer les
+// fenêtres expirées : sans cela, chaque IP vue laissait une entrée à vie.
+const MEMORY_BUCKETS_SWEEP_THRESHOLD = 5_000
+
+function sweepExpiredBuckets(now: number): void {
+  for (const [key, bucket] of memoryBuckets) {
+    if (now > bucket.resetAt) {
+      memoryBuckets.delete(key)
+    }
+  }
+}
+
 function isRateLimitedInMemory(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now()
+
+  if (memoryBuckets.size > MEMORY_BUCKETS_SWEEP_THRESHOLD) {
+    sweepExpiredBuckets(now)
+  }
+
   const bucket = memoryBuckets.get(key)
 
   if (!bucket || now > bucket.resetAt) {

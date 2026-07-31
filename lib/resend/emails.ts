@@ -42,8 +42,8 @@ export async function sendWelcomeEmail(params: {
             </p>
             <div style="background:#F5F0E8;padding:16px;border-radius:8px;margin:24px 0;">
               <p style="margin:0;color:#666;font-size:14px;">
-                📄 Votre reçu fiscal (CERFA 11580*03) vous sera envoyé chaque janvier pour 
-                l'ensemble de vos dons de l'année.
+                📄 Votre reçu fiscal (CERFA 11580*03) vous est envoyé par HelloAsso,
+                à l'adresse email utilisée lors de votre paiement.
               </p>
             </div>
             <a href="${process.env.NEXT_PUBLIC_APP_URL}/espace-adherent" 
@@ -62,45 +62,9 @@ export async function sendWelcomeEmail(params: {
   })
 }
 
-// ─── Fiscal Receipt Email ───────────────────────────────────────────────────────
-
-export async function sendFiscalReceiptEmail(params: {
-  to: string
-  firstName: string
-  year: number
-  totalAmount: number
-  pdfUrl: string
-}) {
-  return resend.emails.send({
-    from: FROM,
-    to: params.to,
-    subject: `Votre reçu fiscal ${params.year} — Association Afrique de l'Est et ses amis`,
-    html: `
-      <!DOCTYPE html>
-      <html lang="fr">
-      <head><meta charset="UTF-8"></head>
-      <body style="margin:0;padding:0;background:#FEFAF5;font-family:system-ui,sans-serif;">
-        <div style="max-width:600px;margin:0 auto;padding:32px 16px;">
-          <div style="background:#2D7D46;padding:24px;border-radius:16px 16px 0 0;text-align:center;">
-            <h1 style="color:#fff;margin:0;font-size:22px;">📄 Reçu fiscal ${params.year}</h1>
-          </div>
-          <div style="background:#fff;padding:32px;border-radius:0 0 16px 16px;">
-            <p>Bonjour ${escapeHtml(params.firstName)},</p>
-            <p>Vous trouverez ci-joint votre reçu fiscal (CERFA 11580*03) pour vos dons
-            effectués en ${params.year}, soit un total de <strong>${params.totalAmount}€</strong>.</p>
-            <p>Ce document vous permet de déduire <strong>66% de vos dons</strong> de votre 
-            impôt sur le revenu (dans la limite de 20% du revenu imposable).</p>
-            <a href="${params.pdfUrl}" 
-               style="display:inline-block;background:#2D7D46;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;">
-              📥 Télécharger le reçu CERFA
-            </a>
-          </div>
-        </div>
-      </body>
-      </html>
-    `,
-  })
-}
+// Les reçus fiscaux CERFA sont édités et envoyés directement par HelloAsso,
+// qui encaisse les paiements. L'association n'en émet pas en parallèle : deux
+// reçus pour un même don exposeraient le donateur à une double déduction.
 
 // ─── Appointment Confirmation Email ─────────────────────────────────────────────
 
@@ -190,9 +154,44 @@ export async function sendNewsletterWelcome(params: {
     subject: `Bienvenue dans notre newsletter ! 🌍`,
     html: `
       <p>Bonjour${params.firstName ? ` ${escapeHtml(params.firstName)}` : ''} !</p>
-      <p>Vous êtes maintenant inscrit(e) à la newsletter de l'Association Afrique de l'Est et ses amis.</p>
+      <p>Votre inscription à la newsletter de l'Association Afrique de l'Est et ses amis est confirmée.</p>
       <p>Vous recevrez régulièrement nos actualités, nos événements et les témoignages de nos bénéficiaires.</p>
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL}">Découvrir notre site →</a></p>
+    `,
+  })
+}
+
+// ─── Newsletter Confirmation (double opt-in) ────────────────────────────────
+
+/**
+ * Demande de confirmation d'inscription. Tant que le lien n'est pas cliqué,
+ * l'adresse ne reçoit rien d'autre : c'est ce qui empêche d'abonner un tiers
+ * à son insu et constitue la preuve de consentement attendue par le RGPD.
+ */
+export async function sendNewsletterConfirmation(params: {
+  to: string
+  firstName?: string
+  confirmUrl: string
+}) {
+  return resend.emails.send({
+    from: FROM,
+    to: params.to,
+    subject: `Confirmez votre inscription à notre newsletter`,
+    html: `
+      <p>Bonjour${params.firstName ? ` ${escapeHtml(params.firstName)}` : ''} !</p>
+      <p>Une inscription à la newsletter de l'Association Afrique de l'Est et ses amis
+      a été demandée avec cette adresse email.</p>
+      <p>Pour la valider, cliquez sur le lien ci-dessous :</p>
+      <p>
+        <a href="${params.confirmUrl}"
+           style="display:inline-block;background:#E8702A;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;">
+          Confirmer mon inscription
+        </a>
+      </p>
+      <p style="color:#666;font-size:14px;">
+        Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce
+        message : sans confirmation de votre part, aucune newsletter ne vous sera envoyée.
+      </p>
     `,
   })
 }

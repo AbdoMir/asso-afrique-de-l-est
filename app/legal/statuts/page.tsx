@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ChevronRight, Landmark } from 'lucide-react'
 import { DownloadButton } from './DownloadButton'
@@ -15,7 +16,7 @@ export default function StatutsPage() {
         {/* Breadcrumb */}
         <nav aria-label="Fil d'Ariane" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-warm-500">
-            <li><a href="/" className="hover:text-primary-500 transition-colors">Accueil</a></li>
+            <li><Link href="/" className="hover:text-primary-500 transition-colors">Accueil</Link></li>
             <li><ChevronRight className="w-4 h-4" /></li>
             <li className="text-warm-700 font-medium">Statuts de l&apos;association</li>
           </ol>

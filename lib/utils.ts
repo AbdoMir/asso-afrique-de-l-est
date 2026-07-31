@@ -33,10 +33,6 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date))
 }
 
-export function generateCerfaNumber(year: number, sequence: number): string {
-  return `CERFA-${year}-${String(sequence).padStart(6, '0')}`
-}
-
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendNewsletterWelcome } from '@/lib/resend/emails'
+import { sendNewsletterConfirmation } from '@/lib/resend/emails'
 import { z } from 'zod'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 
@@ -37,16 +37,50 @@ export async function POST(request: NextRequest) {
 
     const supabase = createAdminClient()
 
-    const { error } = await supabase.from('newsletter_subscribers').upsert(
-      { email, first_name, consent },
-      { onConflict: 'email' }
-    )
+    // Double opt-in : l'inscription est créée non confirmée. Seul le clic sur
+    // le lien envoyé à l'adresse la validera — c'est ce qui empêche d'abonner
+    // quelqu'un d'autre à son insu.
+    const { data: existing } = await supabase
+      .from('newsletter_subscribers')
+      .select('confirmed, confirmation_token')
+      .eq('email', email)
+      .maybeSingle()
+
+    // Déjà confirmé : on ne renvoie rien et on ne révèle pas non plus que
+    // l'adresse est connue (l'API ne doit pas servir à tester des emails).
+    if (existing?.confirmed) {
+      return NextResponse.json({ success: true, pending: false })
+    }
+
+    const { data: subscriber, error } = await supabase
+      .from('newsletter_subscribers')
+      .upsert(
+        { email, first_name, consent, confirmed: false },
+        { onConflict: 'email' }
+      )
+      .select('confirmation_token')
+      .single()
 
     if (error) throw error
 
-    await sendNewsletterWelcome({ to: email, firstName: first_name })
+    const token = subscriber?.confirmation_token
+    if (!token) throw new Error('Jeton de confirmation manquant')
 
-    return NextResponse.json({ success: true })
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    // L'inscription est enregistrée : un échec d'envoi ne doit pas renvoyer
+    // une erreur à l'internaute, qui réessaierait inutilement.
+    const { error: emailError } = await sendNewsletterConfirmation({
+      to: email,
+      firstName: first_name,
+      confirmUrl: `${baseUrl}/api/newsletter/confirm?token=${token}`,
+    })
+
+    if (emailError) {
+      console.error('Newsletter confirmation email error:', emailError)
+    }
+
+    return NextResponse.json({ success: true, pending: true })
   } catch (error) {
     console.error('Newsletter API error:', error)
     return NextResponse.json(

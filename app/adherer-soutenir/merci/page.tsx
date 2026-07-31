@@ -1,49 +1,14 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle2, AlertCircle, Clock, Heart } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 function MerciContent() {
   const searchParams = useSearchParams()
-  const source = searchParams.get('source')
-  const redirectStatus = searchParams.get('redirect_status')
-  const paypalOrderId = searchParams.get('token')
-
-  const [paypalState, setPaypalState] = useState<'capturing' | 'succeeded' | 'failed'>(
-    source === 'paypal' ? 'capturing' : 'succeeded'
-  )
-
-  useEffect(() => {
-    if (source !== 'paypal' || !paypalOrderId) return
-
-    fetch('/api/paypal/capture-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: paypalOrderId }),
-    })
-      .then((res) => (res.ok ? setPaypalState('succeeded') : setPaypalState('failed')))
-      .catch(() => setPaypalState('failed'))
-  }, [source, paypalOrderId])
-
-  // Stripe ajoute redirect_status après confirmSetup (succeeded, processing, failed)
-  const isFailed = (source === 'stripe' && redirectStatus === 'failed') || paypalState === 'failed'
-  const isProcessing = source === 'stripe' && redirectStatus === 'processing'
-  const isCapturingPaypal = source === 'paypal' && paypalState === 'capturing'
-
-  if (isCapturingPaypal) {
-    return (
-      <div className="card p-8 md:p-12 text-center max-w-lg mx-auto">
-        <Clock className="w-16 h-16 text-amber-500 mx-auto mb-4 animate-pulse" />
-        <h1 className="font-display font-bold text-2xl text-warm-900 mb-3">
-          Finalisation du paiement…
-        </h1>
-        <p className="text-warm-500">Merci de patienter quelques instants.</p>
-      </div>
-    )
-  }
+  const isFailed = searchParams.get('error') !== null
 
   if (isFailed) {
     return (
@@ -63,25 +28,6 @@ function MerciContent() {
     )
   }
 
-  if (isProcessing) {
-    return (
-      <div className="card p-8 md:p-12 text-center max-w-lg mx-auto">
-        <Clock className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-        <h1 className="font-display font-bold text-2xl text-warm-900 mb-3">
-          Paiement en cours de traitement
-        </h1>
-        <p className="text-warm-500 mb-6">
-          Votre prélèvement SEPA est en cours de validation par votre banque.
-          Vous recevrez un email de confirmation dès qu&apos;il sera finalisé
-          (généralement sous quelques jours).
-        </p>
-        <Link href="/">
-          <Button variant="outline" size="lg">Retour à l&apos;accueil</Button>
-        </Link>
-      </div>
-    )
-  }
-
   return (
     <div className="card p-8 md:p-12 text-center max-w-lg mx-auto">
       <CheckCircle2 className="w-16 h-16 text-secondary-500 mx-auto mb-4" />
@@ -89,10 +35,8 @@ function MerciContent() {
         Merci pour votre soutien !
       </h1>
       <p className="text-warm-500 mb-6">
-        Votre {source === 'helloasso' ? 'adhésion' : 'don'} a bien été
-        enregistré{source === 'helloasso' ? 'e' : ''}. Un email de confirmation
-        vous a été envoyé. Votre reçu fiscal CERFA vous parviendra chaque
-        mois de janvier.
+        HelloAsso vous envoie la confirmation de votre paiement ainsi que votre
+        reçu fiscal CERFA, à l&apos;adresse email utilisée lors du règlement.
       </p>
       <div className="flex gap-3 justify-center">
         <Link href="/">

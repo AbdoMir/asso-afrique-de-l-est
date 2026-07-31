@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClientSafe, DEMO_MODE_ALLOWED } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, CreditCard, FileText, Settings, LogOut, Heart,
@@ -32,7 +32,6 @@ export default function MemberDashboard() {
   const [profile, setProfile] = useState<any>(null)
   const [donations, setDonations] = useState<any[]>([])
   const [membership, setMembership] = useState<any>(null)
-  const [receipts, setReceipts] = useState<any[]>([])
   const [documents, setDocuments] = useState<any[]>([])
   const [appointments, setAppointments] = useState<any[]>([])
   const [isMock, setIsMock] = useState(false)
@@ -53,20 +52,24 @@ export default function MemberDashboard() {
   const [zipCode, setZipCode] = useState('')
   const [updatingProfile, setUpdatingProfile] = useState(false)
 
-  // Supabase component client
-  let supabase: any = null
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      supabase = createClient()
-    }
-  } catch (e) {
-    console.error('Supabase init failed', e)
-  }
+  const supabase = createClientSafe()
 
   useEffect(() => {
     async function loadData() {
       setLoading(true)
-      
+
+      // Sans Supabase configuré, on ne rejoue une session factice qu'en
+      // développement : en production, l'espace adhérent doit rester fermé.
+      if (!supabase && !DEMO_MODE_ALLOWED) {
+        toast({
+          title: 'Service indisponible',
+          description: "L'espace adhérent est momentanément inaccessible. Merci de réessayer plus tard.",
+          variant: 'error',
+        })
+        router.push('/')
+        return
+      }
+
       // 1. If no supabase client, load from localStorage
       if (!supabase) {
         setIsMock(true)
@@ -109,12 +112,6 @@ export default function MemberDashboard() {
           { id: 'don-4', amount: 10, frequency: 'monthly', status: 'succeeded', created_at: '2026-03-15T12:00:00Z' },
           { id: 'don-5', amount: 10, frequency: 'monthly', status: 'succeeded', created_at: '2026-02-15T12:00:00Z' },
           { id: 'don-6', amount: 50, frequency: 'once', status: 'succeeded', created_at: '2025-12-10T14:30:00Z' },
-        ])
-
-        // Mock Receipts
-        setReceipts([
-          { id: 'rec-1', year: 2026, total_amount: 50.0, cerfa_number: 'CERFA-2026-000104' },
-          { id: 'rec-2', year: 2025, total_amount: 240.0, cerfa_number: 'CERFA-2025-000842' },
         ])
 
         // Mock Appointments
@@ -182,16 +179,8 @@ export default function MemberDashboard() {
           setDonations(donData)
         }
 
-        // Receipts
-        const { data: recData } = await supabase
-          .from('fiscal_receipts')
-          .select('*')
-          .eq('user_id', sbUser.id)
-          .order('year', { ascending: false })
-
-        if (recData) {
-          setReceipts(recData)
-        }
+        // Les reçus fiscaux CERFA sont édités et envoyés par HelloAsso :
+        // rien à charger ici, l'onglet renvoie vers le compte HelloAsso.
 
         // Documents
         const { data: docData } = await supabase
@@ -266,6 +255,9 @@ export default function MemberDashboard() {
       return
     }
 
+    // Les cas sans client (démo, indisponible) sont traités en amont.
+    if (!supabase) return
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -319,6 +311,9 @@ export default function MemberDashboard() {
       return
     }
 
+    // Les cas sans client (démo, indisponible) sont traités en amont.
+    if (!supabase) return
+
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
@@ -333,28 +328,16 @@ export default function MemberDashboard() {
     }
   }
 
+  // Les dons récurrents sont gérés par HelloAsso : c'est depuis son compte
+  // HelloAsso que le donateur suspend ou résilie son prélèvement. L'association
+  // n'a pas la main dessus.
   const handleCancelSubscription = async () => {
-    const confirm = window.confirm("Vous allez être redirigé vers le portail sécurisé Stripe pour gérer ou résilier votre don mensuel. Continuer ?")
+    const confirm = window.confirm(
+      'La gestion de votre don mensuel se fait depuis votre compte HelloAsso. Vous allez y être redirigé. Continuer ?'
+    )
     if (!confirm) return
 
-    setPortalLoading(true)
-    try {
-      const response = await fetch('/api/stripe/portal', { method: 'POST' })
-      const result = await response.json()
-
-      if (!response.ok || !result.url) {
-        throw new Error(result.error || "Impossible d'ouvrir le portail de gestion.")
-      }
-
-      window.location.href = result.url
-    } catch (err: any) {
-      toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible d\'ouvrir le portail de gestion. Contactez-nous directement.',
-        variant: 'error',
-      })
-      setPortalLoading(false)
-    }
+    window.open('https://www.helloasso.com/mon-compte/adhesions-et-dons', '_blank', 'noopener,noreferrer')
   }
 
   const handleUploadDocument = async (e: React.FormEvent) => {
@@ -436,6 +419,9 @@ export default function MemberDashboard() {
   }
 
   const handleDownloadDocument = async (doc: any) => {
+    // Les cas sans client (démo, indisponible) sont traités en amont.
+    if (!supabase) return
+
     try {
       const { data, error } = await supabase.storage
         .from('member-documents')
@@ -774,7 +760,7 @@ export default function MemberDashboard() {
                 >
                   <div>
                     <h3 className="font-display font-black text-2xl text-warm-900">Mes Reçus Fiscaux</h3>
-                    <p className="text-warm-500 text-sm">Téléchargez vos reçus CERFA annuels officiels</p>
+                    <p className="text-warm-500 text-sm">Vos reçus CERFA sont émis par HelloAsso</p>
                   </div>
 
                   {/* Deduction box info */}
@@ -783,45 +769,41 @@ export default function MemberDashboard() {
                     <div>
                       <p className="font-bold text-sm">Déduction Fiscale active (66%)</p>
                       <p className="text-xs text-secondary-700 mt-0.5 leading-relaxed">
-                        Chaque reçu vous permet de déduire 66% de vos versements annuels de votre impôt sur le revenu. 
+                        Chaque reçu vous permet de déduire 66% de vos versements annuels de votre impôt sur le revenu.
                         Par exemple, un reçu de 100€ réduit vos impôts de 66€.
                       </p>
                     </div>
                   </div>
 
-                  {receipts.length === 0 ? (
-                    <div className="text-center py-12 border-2 border-dashed border-warm-200 rounded-2xl">
-                      <FileText className="w-12 h-12 text-warm-300 mx-auto mb-3" />
-                      <p className="text-warm-500 font-medium">Aucun reçu fiscal disponible pour le moment.</p>
-                      <p className="text-xs text-warm-400 mt-1 max-w-sm mx-auto">
-                        Les reçus annuels sont édités automatiquement chaque début d&apos;année (en janvier) pour l&apos;année précédente.
-                      </p>
+                  <div className="p-5 rounded-2xl border border-warm-200 bg-white space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5 text-primary-500" />
+                      </div>
+                      <p className="font-bold text-warm-900">Où trouver vos reçus ?</p>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {receipts.map((rec) => (
-                        <div key={rec.id} className="flex items-center justify-between p-4 border border-warm-100 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all bg-white">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center text-warm-600">
-                              <Calendar className="w-5 h-5 text-primary-500" />
-                            </div>
-                            <div>
-                              <p className="font-bold text-warm-900">Reçu fiscal de l&apos;année {rec.year}</p>
-                              <p className="text-xs text-warm-500">{rec.cerfa_number} • Montant cumulé : {rec.total_amount} €</p>
-                            </div>
-                          </div>
-                          <a 
-                            href={`/api/receipts/generate?year=${rec.year}`}
-                            download
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3.5 py-2 rounded-lg transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            Télécharger CERFA
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    <p className="text-sm text-warm-600 leading-relaxed">
+                      Vos paiements étant encaissés par HelloAsso, c&apos;est HelloAsso qui édite et
+                      vous envoie directement votre reçu fiscal CERFA 11580*03 par email, à l&apos;adresse
+                      utilisée lors du paiement.
+                    </p>
+                    <p className="text-sm text-warm-600 leading-relaxed">
+                      Vous les retrouvez également à tout moment depuis votre compte HelloAsso,
+                      rubrique <span className="font-semibold">« Mes paiements »</span>.
+                    </p>
+                    <a
+                      href="https://www.helloasso.com/mon-compte/paiements"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3.5 py-2 rounded-lg transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Accéder à mes reçus HelloAsso
+                    </a>
+                    <p className="text-xs text-warm-400 leading-relaxed pt-1">
+                      Vous ne retrouvez pas un reçu ? Contactez-nous, nous ferons le nécessaire auprès de HelloAsso.
+                    </p>
+                  </div>
                 </motion.div>
               )}
 

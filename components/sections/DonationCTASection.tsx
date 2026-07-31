@@ -45,7 +45,7 @@ export function DonationCTASection() {
                   <div className="w-5 h-5 rounded-full bg-secondary-100 flex items-center justify-center text-secondary-600">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
-                  <span>Paiement sécurisé Stripe & HelloAsso • Sans engagement</span>
+                  <span>Paiement sécurisé HelloAsso • Sans engagement</span>
                 </div>
               </div>
             </div>

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ChevronRight, ShieldCheck } from 'lucide-react'
 
@@ -14,7 +15,7 @@ export default function ConfidentialitePage() {
         {/* Breadcrumb */}
         <nav aria-label="Fil d'Ariane" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-warm-500">
-            <li><a href="/" className="hover:text-primary-500 transition-colors">Accueil</a></li>
+            <li><Link href="/" className="hover:text-primary-500 transition-colors">Accueil</Link></li>
             <li><ChevronRight className="w-4 h-4" /></li>
             <li className="text-warm-700 font-medium">Politique de Confidentialité</li>
           </ol>
@@ -37,7 +38,7 @@ export default function ConfidentialitePage() {
             <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1">
               <li>Identité : nom, prénom.</li>
               <li>Coordonnées : adresse email, numéro de téléphone, adresse postale.</li>
-              <li>Données financières : montants de vos dons, historique de paiement (les transactions de paiement direct sont traitées de manière sécurisée par nos partenaires Stripe et HelloAsso, nous ne stockons aucun numéro de carte ni coordonnées bancaires).</li>
+              <li>Données financières : montants de vos dons, historique de paiement (les transactions sont traitées de manière sécurisée par notre partenaire HelloAsso, nous ne stockons aucun numéro de carte ni coordonnées bancaires).</li>
             </ul>
           </section>
 

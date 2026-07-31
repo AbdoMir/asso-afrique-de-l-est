@@ -1,4 +1,4 @@
-import { Banknote, Wallet, Landmark, MapPin } from 'lucide-react'
+import { Banknote, Landmark, MapPin } from 'lucide-react'
 
 const bankHolder = process.env.NEXT_PUBLIC_BANK_HOLDER || "Association Afrique de l'Est et ses amis"
 const bankIban = process.env.NEXT_PUBLIC_BANK_IBAN || 'FRXX XXXX XXXX XXXX XXXX XXXX XXX'
@@ -14,27 +14,12 @@ export function AlternativePaymentMethods() {
           <span className="section-badge">Autres moyens de paiement</span>
           <h2 className="section-title">D&apos;autres façons de nous soutenir</h2>
           <p className="text-warm-500 max-w-2xl mx-auto mt-3">
-            En plus de la carte bancaire et du prélèvement SEPA, vous pouvez
-            également nous soutenir par PayPal, virement ou directement sur
-            place.
+            En plus du paiement en ligne via HelloAsso, vous pouvez également
+            nous soutenir par virement ou directement sur place.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {/* PayPal — structure prête, en attente des identifiants */}
-          <div className="card p-6 opacity-75">
-            <div className="w-12 h-12 rounded-xl bg-warm-100 flex items-center justify-center mb-4">
-              <Wallet className="w-6 h-6 text-warm-500" />
-            </div>
-            <h3 className="font-bold text-warm-900 mb-2">PayPal</h3>
-            <p className="text-sm text-warm-500 mb-4">
-              Payez avec votre compte PayPal en quelques clics.
-            </p>
-            <span className="inline-block text-xs font-semibold px-3 py-1.5 rounded-full bg-warm-100 text-warm-500">
-              Bientôt disponible
-            </span>
-          </div>
-
+        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Virement bancaire — informatif uniquement */}
           <div className="card p-6">
             <div className="w-12 h-12 rounded-xl bg-secondary-50 flex items-center justify-center mb-4">

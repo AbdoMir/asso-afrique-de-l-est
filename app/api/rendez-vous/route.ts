@@ -54,6 +54,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ce créneau n\'est plus disponible.' }, { status: 409 })
     }
 
+    // Contrôle indicatif : il évite un aller-retour inutile, mais ne garantit
+    // rien. La règle qui fait foi est le trigger `appointment_bookings_capacity`
+    // (009_appointment_capacity_guard.sql), seul à pouvoir vérifier la capacité
+    // de façon atomique face à deux réservations simultanées.
     const { count, error: countError } = await supabase
       .from('appointment_bookings')
       .select('id', { count: 'exact', head: true })
@@ -75,13 +79,26 @@ export async function POST(request: NextRequest) {
       notes,
     })
 
-    if (insertError) throw insertError
+    if (insertError) {
+      // 23514 = check_violation, code levé par le trigger de capacité lorsque
+      // la dernière place vient d'être prise par une requête concurrente.
+      if (insertError.code === '23514') {
+        return NextResponse.json({ error: 'Ce créneau est complet.' }, { status: 409 })
+      }
+      throw insertError
+    }
+
+    // Pour un adhérent connecté, la confirmation part vers l'adresse de son
+    // compte et non vers celle saisie dans le formulaire : sinon l'API
+    // permettrait d'envoyer un email à une adresse arbitraire depuis une
+    // session valide.
+    const confirmationEmail = user?.email || email
 
     // La réservation reste valable même si l'email échoue (ex: restriction
     // sandbox Resend tant qu'aucun domaine n'est vérifié) — on logue l'échec
     // au lieu de le faire échouer silencieusement.
     const { error: emailError } = await sendAppointmentConfirmation({
-      to: email,
+      to: confirmationEmail,
       name,
       type,
       startAt: slot.start_at,

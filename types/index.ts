@@ -20,7 +20,7 @@ export type Profile = {
 export type MembershipType = 'simple' | 'monthly_5' | 'monthly_10' | 'monthly_20'
 export type MembershipStatus = 'active' | 'expired' | 'cancelled' | 'pending'
 export type DonationFrequency = 'once' | 'monthly'
-export type PaymentMethod = 'card' | 'sepa_debit' | 'paypal' | 'bank_transfer' | 'cash_check' | 'helloasso'
+export type PaymentMethod = 'bank_transfer' | 'cash_check' | 'helloasso'
 
 export type Membership = {
   id: string
@@ -30,8 +30,6 @@ export type Membership = {
   amount: number
   frequency: DonationFrequency
   helloasso_ref?: string
-  stripe_subscription_id?: string
-  stripe_customer_id?: string
   payment_method?: PaymentMethod
   date_start: string
   date_end?: string
@@ -46,7 +44,7 @@ export interface MembershipFormula {
   frequency: DonationFrequency
   description: string
   benefits: string[]
-  provider: 'helloasso' | 'stripe'
+  provider: 'helloasso'
   highlighted?: boolean
   badge?: string
   color: string
@@ -62,12 +60,13 @@ export type Donation = {
   amount: number
   frequency: DonationFrequency
   status: DonationStatus
-  stripe_payment_intent_id?: string
-  stripe_subscription_id?: string
   helloasso_order_id?: string
+  /** Identifiant du paiement HelloAsso — clé d'idempotence du webhook. */
+  helloasso_payment_id?: string
   donor_name?: string
   donor_email?: string
   payment_method?: PaymentMethod
+  membership_id?: string
   created_at: string
   updated_at: string
 }
@@ -127,11 +126,15 @@ export type AppointmentBooking = {
 
 // ─── Newsletter ────────────────────────────────────────────────────────────────
 
+/** Double opt-in : ne jamais diffuser aux lignes dont `confirmed` est faux. */
 export type NewsletterSubscriber = {
   id: string
   email: string
   first_name?: string
   consent: boolean
+  confirmed: boolean
+  confirmation_token?: string
+  confirmed_at?: string
   created_at: string
 }
 
@@ -187,12 +190,6 @@ export interface ApiResponse<T = void> {
   data?: T
   error?: string
   message?: string
-}
-
-export interface StripeSubscriptionResponse {
-  clientSecret: string
-  subscriptionId: string
-  customerId: string
 }
 
 export interface HelloAssoCheckoutResponse {

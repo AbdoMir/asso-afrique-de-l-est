@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClientSafe } from '@/lib/supabase/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -47,7 +48,7 @@ const FORMULAS: MembershipFormula[] = [
       'Rapport d\'impact annuel',
       'Résiliation sans engagement',
     ],
-    provider: 'stripe',
+    provider: 'helloasso',
     color: 'from-primary-400 to-primary-500',
     badge: undefined,
   },
@@ -63,7 +64,7 @@ const FORMULAS: MembershipFormula[] = [
       'Accès aux bilans trimestriels',
       'Badge adhérent sur le site',
     ],
-    provider: 'stripe',
+    provider: 'helloasso',
     color: 'from-accent-400 to-primary-500',
     highlighted: true,
     badge: 'Populaire',
@@ -80,11 +81,26 @@ const FORMULAS: MembershipFormula[] = [
       'Goodies de l\'association',
       'Rencontre annuelle avec l\'équipe',
     ],
-    provider: 'stripe',
+    provider: 'helloasso',
     color: 'from-secondary-500 to-secondary-600',
     badge: 'Premium',
   },
 ]
+
+// URLs complètes des formulaires HelloAsso, copiées depuis le back-office
+// (rubrique « Widgets et boutons » de chaque formulaire). On ne reconstruit
+// pas ces URLs à partir d'un slug : leur format dépend du type de formulaire
+// et une URL devinée mènerait à une 404 en pleine page de paiement.
+//
+// Seuls les formulaires HelloAsso déclenchent l'émission automatique du reçu
+// fiscal CERFA — l'API Checkout, elle, ne le fait pas.
+// https://dev.helloasso.com/docs/guide-dintégration
+const HELLOASSO_FORM_URLS: Record<MembershipType, string> = {
+  simple: process.env.NEXT_PUBLIC_HELLOASSO_URL_ADHESION || '',
+  monthly_5: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
+  monthly_10: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
+  monthly_20: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
+}
 
 const FORMULA_ICONS: Record<MembershipType, React.ReactNode> = {
   simple: <User className="w-5 h-5" />,
@@ -168,6 +184,25 @@ export function DonationSection() {
 
   const sepaConsent = watch('sepa_mandate_consent')
 
+  // Le paiement s'effectue sur HelloAsso, qui ne nous transmet aucune donnée
+  // permettant d'identifier le compte : le rattachement du don à l'espace
+  // adhérent se fait uniquement sur l'email du payeur. On pré-remplit donc
+  // celui du compte connecté, et on l'indique explicitement à l'étape suivante.
+  const [accountEmail, setAccountEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClientSafe()
+    if (!supabase) return
+
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email
+      if (email) {
+        setAccountEmail(email)
+        setValue('email', email)
+      }
+    })
+  }, [setValue])
+
   async function onSubmit(data: DonationFormData) {
     if (isMonthly && !sepaConsent) {
       toast({
@@ -178,63 +213,47 @@ export function DonationSection() {
       return
     }
 
+    const formUrl = HELLOASSO_FORM_URLS[selectedFormula]
+
+    if (!formUrl) {
+      toast({
+        title: 'Paiement momentanément indisponible',
+        description:
+          'Le formulaire de paiement n\'est pas encore configuré. Merci de nous contacter directement.',
+        variant: 'error',
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      if (formula.provider === 'helloasso') {
-        // HelloAsso checkout
-        const response = await fetch('/api/helloasso/create-checkout', {
+      // Le consentement newsletter est propre à l'association : HelloAsso ne le
+      // collecte pas, on l'enregistre donc avant la redirection.
+      if (data.newsletter_consent) {
+        await fetch('/api/newsletter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            formula: selectedFormula,
-            amount: formula.amount,
-            ...data,
+            email: data.email,
+            first_name: data.first_name,
+            consent: true,
           }),
+        }).catch(() => {
+          // Un échec d'inscription newsletter ne doit pas bloquer le paiement.
         })
-        const result = await response.json()
-        if (result.redirectUrl) {
-          window.location.href = result.redirectUrl
-        } else {
-          throw new Error(result.error || 'Erreur HelloAsso')
-        }
-      } else {
-        // Stripe SEPA subscription
-        const response = await fetch('/api/stripe/create-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            formula: selectedFormula,
-            priceId: getPriceId(selectedFormula),
-            ...data,
-          }),
-        })
-        const result = await response.json()
-        if (result.clientSecret) {
-          // Redirect to payment confirmation page (choix CB ou SEPA)
-          window.location.href = `/adherer-soutenir/confirmation?client_secret=${result.clientSecret}`
-        } else {
-          throw new Error(result.error || 'Erreur Stripe')
-        }
       }
+
+      // L'identité et l'adresse du donateur sont saisies sur HelloAsso, qui en
+      // a besoin pour éditer le reçu fiscal.
+      window.location.href = formUrl
     } catch (error) {
       toast({
         title: 'Une erreur est survenue',
         description: error instanceof Error ? error.message : 'Veuillez réessayer ou nous contacter.',
         variant: 'error',
       })
-    } finally {
       setIsSubmitting(false)
     }
-  }
-
-  function getPriceId(formulaId: MembershipType): string {
-    const map: Record<MembershipType, string> = {
-      simple: '',
-      monthly_5: process.env.NEXT_PUBLIC_STRIPE_PRICE_5 || '',
-      monthly_10: process.env.NEXT_PUBLIC_STRIPE_PRICE_10 || '',
-      monthly_20: process.env.NEXT_PUBLIC_STRIPE_PRICE_20 || '',
-    }
-    return map[formulaId]
   }
 
   return (
@@ -360,9 +379,7 @@ export function DonationSection() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-semibold text-warm-900">{formula.label}</p>
-                      <p className="text-warm-500 text-sm">
-                        via {formula.provider === 'helloasso' ? 'HelloAsso' : 'Stripe SEPA'}
-                      </p>
+                      <p className="text-warm-500 text-sm">via HelloAsso</p>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black font-display text-primary-500">
@@ -649,25 +666,30 @@ export function DonationSection() {
                 <div className="card p-6 mb-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center">
-                      {formula.provider === 'helloasso' ? (
-                        <span className="text-xl">🟢</span>
-                      ) : (
-                        <CreditCard className="w-5 h-5 text-warm-600" />
-                      )}
+                      <span className="text-xl">🟢</span>
                     </div>
                     <div>
-                      <p className="font-semibold text-warm-900">
-                        {formula.provider === 'helloasso'
-                          ? 'Paiement via HelloAsso'
-                          : 'Carte bancaire ou prélèvement SEPA via Stripe'}
-                      </p>
+                      <p className="font-semibold text-warm-900">Paiement via HelloAsso</p>
                       <p className="text-sm text-warm-500">
-                        {formula.provider === 'helloasso'
-                          ? 'Vous serez redirigé vers la plateforme HelloAsso'
-                          : 'Vous choisirez CB ou SEPA sur la page suivante'}
+                        Vous serez redirigé vers la plateforme HelloAsso
                       </p>
                     </div>
                   </div>
+
+                  {/* Le don n'est rattaché au compte que si l'email du payeur
+                      correspond : c'est la seule clé dont on dispose. */}
+                  {accountEmail && (
+                    <div className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex gap-3">
+                      <Info className="w-5 h-5 shrink-0 text-amber-600" />
+                      <p className="text-sm leading-relaxed">
+                        Sur HelloAsso, réglez bien avec l&apos;adresse{' '}
+                        <span className="font-semibold">{accountEmail}</span> : c&apos;est
+                        elle qui permet de rattacher votre versement à votre espace
+                        adhérent. Avec une autre adresse, le don sera enregistré mais
+                        n&apos;apparaîtra pas dans votre compte.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="bg-warm-50 rounded-xl p-4 text-sm text-warm-600 space-y-1">
                     <p className="flex items-center gap-2">
@@ -680,7 +702,7 @@ export function DonationSection() {
                     </p>
                     <p className="flex items-center gap-2">
                       <FileCheck className="w-4 h-4 text-secondary-500 shrink-0" />
-                      Reçu fiscal CERFA envoyé chaque janvier
+                      Reçu fiscal CERFA émis automatiquement par HelloAsso
                     </p>
                   </div>
                 </div>
@@ -703,9 +725,7 @@ export function DonationSection() {
                     onClick={handleSubmit(onSubmit)}
                     leftIcon={<Lock className="w-4 h-4" />}
                   >
-                    {formula.provider === 'helloasso'
-                      ? 'Payer via HelloAsso'
-                      : 'Continuer vers le paiement'}
+                    Payer via HelloAsso
                   </Button>
                 </div>
               </div>

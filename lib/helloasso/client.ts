@@ -51,47 +51,13 @@ async function helloAssoFetch(endpoint: string, options?: RequestInit) {
   return response.json()
 }
 
-export async function createCheckoutSession(params: {
-  formSlug: string
-  amount?: number
-  firstName?: string
-  lastName?: string
-  email?: string
-  returnUrl: string
-  errorUrl: string
-  backUrl: string
-}) {
-  const orgSlug = requireEnv('NEXT_PUBLIC_HELLOASSO_ORG_SLUG')
-
-  const body = {
-    totalAmount: params.amount ? params.amount * 100 : undefined, // en centimes
-    initialValues: {
-      firstName: params.firstName,
-      lastName: params.lastName,
-      email: params.email,
-    },
-    redirectParameters: {
-      returnUrl: params.returnUrl,
-      errorUrl: params.errorUrl,
-      backUrl: params.backUrl,
-    },
-    metadata: {
-      source: 'asso-aes-website',
-    },
-  }
-
-  return helloAssoFetch(`/organizations/${orgSlug}/checkout-intents`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
-}
-
-export async function getOrganizationStats() {
-  const orgSlug = requireEnv('NEXT_PUBLIC_HELLOASSO_ORG_SLUG')
-  return helloAssoFetch(`/organizations/${orgSlug}`)
-}
-
-export async function getFormOrders(formSlug: string) {
-  const orgSlug = requireEnv('NEXT_PUBLIC_HELLOASSO_ORG_SLUG')
-  return helloAssoFetch(`/organizations/${orgSlug}/forms/Donation/${formSlug}/orders`)
+/**
+ * Récupère un paiement auprès de l'API HelloAsso.
+ *
+ * Sert de vérification faisant autorité lorsqu'une notification webhook
+ * arrive sans signature HMAC : la clé de signature n'est délivrée qu'aux
+ * comptes partenaires, l'API reste donc le seul recours pour les autres.
+ */
+export async function getPayment(paymentId: number | string) {
+  return helloAssoFetch(`/payments/${paymentId}`)
 }

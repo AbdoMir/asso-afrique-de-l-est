@@ -44,7 +44,14 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error
 
-    await sendContactConfirmation({ to: email, name, subject })
+    // Le message est enregistré : un échec d'envoi d'email (quota Resend,
+    // domaine non vérifié...) ne doit pas faire croire à l'expéditeur que sa
+    // demande a échoué — il réessaierait et créerait des doublons.
+    const { error: emailError } = await sendContactConfirmation({ to: email, name, subject })
+
+    if (emailError) {
+      console.error('Contact confirmation email error:', emailError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
