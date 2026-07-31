@@ -64,6 +64,19 @@ export default function SecuritePage() {
     setStarting(true)
     try {
       const supabase = createClient()
+
+      // Une tentative precedente interrompue (onglet fermé avant de scanner
+      // le QR code, double-clic...) laisse un facteur "unverified" orphelin.
+      // listFactors().totp ne renvoie que les facteurs verifies (invisible
+      // au check hasFactor), mais Supabase refuse quand meme un nouvel
+      // enroll() tant que ce facteur non-verifie existe encore. On le
+      // nettoie systematiquement avant de repartir sur un enrolement propre.
+      const { data: existing } = await supabase.auth.mfa.listFactors()
+      const unverified = existing?.all?.filter((f) => f.status !== 'verified') || []
+      for (const f of unverified) {
+        await supabase.auth.mfa.unenroll({ factorId: f.id })
+      }
+
       const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
       if (error) throw error
       setFactorId(data.id)
