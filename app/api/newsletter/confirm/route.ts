@@ -51,9 +51,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/?newsletter=erreur`)
   }
 
+  // Le jeton sert ensuite de clé de désinscription : c'est lui qui alimente le
+  // lien et les en-têtes List-Unsubscribe de tous les emails de newsletter.
   const { error: emailError } = await sendNewsletterWelcome({
     to: subscriber.email,
     firstName: subscriber.first_name ?? undefined,
+    unsubscribeToken: token,
   })
 
   if (emailError) {

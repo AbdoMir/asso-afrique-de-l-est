@@ -142,21 +142,61 @@ export async function sendContactConfirmation(params: {
   })
 }
 
+// ─── Newsletter : désinscription ────────────────────────────────────────────
+
+/**
+ * Tout email de newsletter doit porter un moyen de se désinscrire (art. 21
+ * RGPD, art. L34-5 CPCE). Le jeton est celui de l'inscription : il identifie la
+ * ligne sans révéler l'adresse dans l'URL.
+ */
+export function buildUnsubscribeUrl(token: string): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  return `${baseUrl}/api/newsletter/unsubscribe?token=${token}`
+}
+
+/**
+ * En-têtes RFC 2369 / 8058 : ils font apparaître le bouton natif « Se
+ * désabonner » de Gmail, Outlook et Apple Mail, en haut du message. C'est le
+ * chemin que la plupart des destinataires empruntent réellement — et son
+ * absence pousse à signaler le message comme spam.
+ */
+function unsubscribeHeaders(token: string) {
+  return {
+    'List-Unsubscribe': `<${buildUnsubscribeUrl(token)}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  }
+}
+
+/** Pied de page HTML rappelant le lien de désinscription. */
+function unsubscribeFooter(token: string): string {
+  return `
+      <p style="color:#999;font-size:12px;margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+        Vous recevez cet email parce que vous avez confirmé votre inscription à
+        notre newsletter.
+        <a href="${buildUnsubscribeUrl(token)}" style="color:#666;">Se désinscrire</a> ·
+        <a href="${process.env.NEXT_PUBLIC_APP_URL}/legal/confidentialite" style="color:#666;">Politique de confidentialité</a>
+      </p>
+  `
+}
+
 // ─── Newsletter Welcome ─────────────────────────────────────────────────────────
 
 export async function sendNewsletterWelcome(params: {
   to: string
   firstName?: string
+  unsubscribeToken: string
 }) {
   return resend.emails.send({
     from: FROM,
     to: params.to,
     subject: `Bienvenue dans notre newsletter ! 🌍`,
+    headers: unsubscribeHeaders(params.unsubscribeToken),
     html: `
       <p>Bonjour${params.firstName ? ` ${escapeHtml(params.firstName)}` : ''} !</p>
       <p>Votre inscription à la newsletter de l'Association Afrique de l'Est et ses amis est confirmée.</p>
       <p>Vous recevrez régulièrement nos actualités, nos événements et les témoignages de nos bénéficiaires.</p>
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL}">Découvrir notre site →</a></p>
+      ${unsubscribeFooter(params.unsubscribeToken)}
     `,
   })
 }

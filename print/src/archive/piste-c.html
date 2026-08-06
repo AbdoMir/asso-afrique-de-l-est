@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Piste C — Typographique</title>
+    <link rel="stylesheet" href="../assets/fonts.css" />
+    <link rel="stylesheet" href="charte.css" />
+    <style>
+      /* ======================================================================
+         PISTE C — « Typographique »
+
+         Une affiche se lit d'abord de loin, et de loin il n'y a de la place que
+         pour une seule idee. Ici l'idee est un verbe : prenez rendez-vous. Le
+         titre occupe la moitie de la page, le QR occupe un quart, il ne reste
+         rien d'autre.
+
+         Contrainte assumee : deux encres seulement, orange et noir sur blanc.
+         Le logo passe donc en silhouette monochrome (assets/logo-mono.png).
+         C'est la piste la moins chere a tirer en volume, et la plus solide en
+         photocopie — un flyer distribue finit souvent duplique a la va-vite.
+         =================================================================== */
+
+      .page {
+        background: #fff;
+        padding: 15mm;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* --- En-tete : filet + identite -------------------------------------- */
+      .entete {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 8mm;
+        border-bottom: 1.2mm solid var(--encre);
+        padding-bottom: 4mm;
+      }
+
+      .entete img {
+        width: 56mm;
+      }
+
+      .entete .identite {
+        text-align: right;
+        font-size: 9.5pt;
+        font-weight: 600;
+        line-height: 1.45;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--encre);
+      }
+
+      /* --- Le titre, seule chose visible a trois metres --------------------- */
+      h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 74pt;
+        line-height: 0.92;
+        letter-spacing: -0.04em;
+        color: var(--encre);
+        margin-top: 15mm;
+      }
+
+      h1 em {
+        /* En bloc : « rendez-vous. » occupe sa propre ligne quoi qu'il arrive.
+           Sinon le navigateur cesure apres le trait d'union. */
+        display: block;
+        font-style: normal;
+        color: var(--orange);
+      }
+
+      .chapo {
+        margin-top: 9mm;
+        font-size: 15pt;
+        font-weight: 500;
+        line-height: 1.42;
+        color: var(--encre);
+        max-width: 150mm;
+      }
+
+      .chapo b {
+        font-weight: 700;
+      }
+
+      /* --- La bande des six pays ------------------------------------------
+         Ancre le milieu de la page sans rien ajouter de decoratif : dire a qui
+         l'affiche s'adresse est une information, et c'est souvent le seul mot
+         qu'un passant reconnaitra a coup sur. */
+      .pays {
+        margin-top: auto;
+        margin-bottom: auto;
+        padding: 6mm 0;
+        border-top: 0.4mm solid var(--encre);
+        border-bottom: 0.4mm solid var(--encre);
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 12pt;
+        letter-spacing: 0.02em;
+        white-space: nowrap; /* les six pays tiennent sur une seule ligne */
+        text-transform: uppercase;
+        color: var(--encre);
+        text-align: center;
+      }
+
+      .pays i {
+        font-style: normal;
+        color: var(--orange);
+        margin: 0 1.5mm;
+      }
+
+      /* --- Bas de page : le code et rien d'autre --------------------------- */
+      .bas {
+        display: flex;
+        align-items: flex-end;
+        gap: 10mm;
+        border-top: 1.2mm solid var(--encre);
+        padding-top: 7mm;
+      }
+
+      .bas .qr-cadre {
+        width: 62mm;
+        height: 62mm;
+        padding: 0;
+        flex-shrink: 0;
+      }
+
+      .adresse {
+        padding-bottom: 1mm;
+      }
+
+      .adresse .url {
+        display: block;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 21pt;
+        letter-spacing: -0.025em;
+        color: var(--orange);
+        margin-bottom: 4mm;
+      }
+
+      .adresse .invite {
+        display: block;
+        font-size: 12pt;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--encre);
+        margin-bottom: 6mm;
+      }
+
+      .adresse .coord {
+        display: block;
+        font-size: 11pt;
+        line-height: 1.5;
+        color: var(--encre);
+      }
+
+      .adresse .coord strong {
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="entete">
+        <img src="../assets/logo-mono.png" alt="" />
+        <p class="identite">
+          Association Afrique de l'Est et ses amis<br />
+          Association loi 1901 &middot; Eurométropole de Strasbourg
+        </p>
+      </header>
+
+      <!-- Trait d'union ordinaire : Outfit ne couvre pas le U+2011 insecable, et
+           Chrome se rabattait alors sur Times New Roman en plein titre. Le mot
+           tient de toute facon sur sa propre ligne. -->
+      <h1>Prenez <em>rendez-vous.</em></h1>
+
+      <p class="chapo">
+        Démarches administratives, cours de français, soutien scolaire,
+        inscription sportive. <b>Nous accompagnons les familles d'Afrique de
+        l'Est installées dans l'Eurométropole de Strasbourg.</b>
+      </p>
+
+      <p class="pays">
+        Somalie <i>&middot;</i> Éthiopie <i>&middot;</i> Somaliland <i>&middot;</i>
+        Érythrée <i>&middot;</i> Soudan <i>&middot;</i> Djibouti
+      </p>
+
+      <div class="bas">
+        <div class="qr-cadre">
+          <img class="qr" src="../assets/qr-site.svg" alt="" />
+        </div>
+        <div class="adresse">
+          <span class="url">asso.afrique.est-sa.org</span>
+          <span class="invite">
+            Scannez le code et choisissez un créneau.<br />
+            Sans compte à créer.
+          </span>
+          <span class="coord">
+            <strong>B'CoWorker</strong> &middot; Espace Européen de l'Entreprise<br />
+            23 rue de la Haye, 67300 Schiltigheim<br />
+            <strong>06 05 67 59 11</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

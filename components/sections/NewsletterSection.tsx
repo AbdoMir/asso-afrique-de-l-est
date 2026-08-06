@@ -8,13 +8,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 
 const schema = z.object({
   email: z.string().email('Adresse email invalide'),
   first_name: z.string().optional(),
-  consent: z.literal(true, {
-    errorMap: () => ({ message: 'Vous devez accepter de recevoir nos communications' }),
+  // `boolean` affiné plutôt que `literal(true)` : la case part décochée, le
+  // formulaire doit donc pouvoir représenter l'état « pas encore consenti ».
+  consent: z.boolean().refine((value) => value, {
+    message: 'Vous devez accepter de recevoir nos communications',
   }),
 })
 
@@ -34,7 +37,9 @@ export function NewsletterSection() {
     defaultValues: {
       email: '',
       first_name: '',
-      consent: true,
+      // Décoché par défaut : le consentement doit résulter d'un acte positif de
+      // l'internaute (CJUE Planet49, C-673/17).
+      consent: false,
     },
   })
 
@@ -175,6 +180,13 @@ export function NewsletterSection() {
                     {errors.consent.message}
                   </p>
                 )}
+
+                <PrivacyNotice
+                  purpose="pour vous envoyer notre newsletter"
+                  retention="jusqu'à votre désinscription"
+                  tone="dark"
+                  className="mt-4"
+                />
               </motion.form>
             )}
           </AnimatePresence>

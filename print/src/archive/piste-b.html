@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Piste B — Mosaïque des six</title>
+    <link rel="stylesheet" href="../assets/fonts.css" />
+    <link rel="stylesheet" href="charte.css" />
+    <style>
+      /* ======================================================================
+         PISTE B — « Mosaïque des six »
+
+         L'association ne s'adresse pas a un public, mais a six communautes.
+         La page le montre au lieu de le dire : une bande de six pastilles, une
+         par pays, et quatre tuiles de couleur pour les quatre services. La
+         grille n'est pas un habillage, elle porte l'information.
+
+         C'est la piste qui utilise la palette complete du site (orange, vert,
+         ambre). Le logo, lui, reste orange -> bleu canard : l'ecart se voit,
+         c'est assume comme une signature historique posee sur une charte plus
+         large.
+         =================================================================== */
+
+      .page {
+        background: var(--papier-2);
+        display: flex;
+        flex-direction: column;
+        gap: 8mm;
+        padding: 13mm;
+      }
+
+      /* --- En-tete -------------------------------------------------------- */
+      .entete {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8mm;
+      }
+
+      .entete img {
+        width: 74mm;
+      }
+
+      .identite {
+        text-align: right;
+      }
+
+      .identite strong {
+        display: block;
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 13pt;
+        line-height: 1.15;
+        color: var(--encre);
+        letter-spacing: -0.015em;
+      }
+
+      .identite span {
+        display: block;
+        margin-top: 1.5mm;
+        font-size: 9pt;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--orange);
+      }
+
+      /* --- Titre ---------------------------------------------------------- */
+      h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 29pt;
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        color: var(--encre);
+        text-wrap: balance;
+      }
+
+      h1 em {
+        font-style: normal;
+        color: var(--vert);
+      }
+
+      /* --- La bande des six pays ------------------------------------------
+         Chaque pastille porte sa propre couleur : la mosaique commence ici. */
+      .pays {
+        display: flex;
+        gap: 2mm;
+        list-style: none;
+      }
+
+      .pays li {
+        flex: 1;
+        padding: 2.4mm 1mm;
+        border-radius: 1.5mm;
+        text-align: center;
+        font-size: 9.5pt;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.005em;
+      }
+
+      .pays li:nth-child(1) { background: var(--orange); }
+      .pays li:nth-child(2) { background: var(--vert); }
+      .pays li:nth-child(3) { background: var(--ambre); color: var(--encre); }
+      .pays li:nth-child(4) { background: var(--encre); }
+      .pays li:nth-child(5) { background: var(--orange-fonce); }
+      .pays li:nth-child(6) { background: var(--vert-fonce); }
+
+      /* --- Les quatre services -------------------------------------------- */
+      .tuiles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5mm;
+        list-style: none;
+      }
+
+      .tuiles li {
+        height: 47mm;
+        border-radius: 3mm;
+        padding: 6mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: #fff;
+      }
+
+      .tuiles li:nth-child(1) { background: var(--orange); }
+      .tuiles li:nth-child(2) { background: var(--vert); }
+      .tuiles li:nth-child(3) { background: var(--ambre); color: var(--encre); }
+      .tuiles li:nth-child(4) { background: var(--encre); }
+
+      .tuiles svg {
+        width: 9mm;
+        height: 9mm;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        opacity: 0.9;
+      }
+
+      /* A 9 mm, un pentagone en contour se brouille ; plein, le ballon se lit. */
+      .tuiles svg .plein {
+        fill: currentColor;
+      }
+
+      .tuiles h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 15pt;
+        line-height: 1.12;
+        letter-spacing: -0.015em;
+        margin-bottom: 1.8mm;
+      }
+
+      .tuiles p {
+        font-size: 10pt;
+        line-height: 1.4;
+        opacity: 0.85;
+      }
+
+      /* --- Le bloc d'action ----------------------------------------------- */
+      .action {
+        margin-top: auto;
+        background: var(--encre);
+        border-radius: 3mm;
+        padding: 7mm;
+        display: flex;
+        align-items: center;
+        gap: 8mm;
+        color: #fff;
+      }
+
+      .action .qr-cadre {
+        width: 44mm;
+        height: 44mm;
+        border-radius: 2mm;
+        flex-shrink: 0;
+      }
+
+      .action h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 19pt;
+        line-height: 1.12;
+        letter-spacing: -0.015em;
+        margin-bottom: 2.5mm;
+      }
+
+      .action p {
+        font-size: 10.5pt;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 3.5mm;
+      }
+
+      .action .url {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 13.5pt;
+        color: var(--ambre);
+      }
+
+      /* --- Pied ----------------------------------------------------------- */
+      .pied {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8mm;
+        font-size: 10pt;
+        font-weight: 500;
+        line-height: 1.35;
+        color: var(--encre-douce);
+        border-top: 0.4mm solid var(--trait);
+        padding-top: 3.5mm;
+      }
+
+      .pied strong {
+        color: var(--encre);
+        font-weight: 700;
+      }
+
+      .pied .tel {
+        font-size: 12.5pt;
+        font-weight: 700;
+        color: var(--encre);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="entete">
+        <img src="../assets/logo.png" alt="" />
+        <div class="identite">
+          <strong>Association Afrique<br />de l'Est et ses amis</strong>
+          <span>Eurométropole de Strasbourg</span>
+        </div>
+      </header>
+
+      <h1>Six pays, une même porte à pousser <em>à Strasbourg.</em></h1>
+
+      <ul class="pays">
+        <li>Somalie</li>
+        <li>Éthiopie</li>
+        <li>Somaliland</li>
+        <li>Érythrée</li>
+        <li>Soudan</li>
+        <li>Djibouti</li>
+      </ul>
+
+      <ul class="tuiles">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+            <path d="M14 3v5h5M9 13h6M9 17h4" />
+          </svg>
+          <div>
+            <h2>Démarches administratives</h2>
+            <p>Traduction de vos documents et accompagnement dans vos dossiers.</p>
+          </div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-5a8 8 0 0 1 8-8h2a8 8 0 0 1 8 2z" />
+            <path d="M9 12h6" />
+          </svg>
+          <div>
+            <h2>Cours de français</h2>
+            <p>Pour les adultes et pour les adolescents, tout au long de l'année.</p>
+          </div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 5h6a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H3z" />
+            <path d="M21 5h-6a3 3 0 0 0-3 3v11a2 2 0 0 1 2-2h7z" />
+          </svg>
+          <div>
+            <h2>Soutien scolaire</h2>
+            <p>Aide aux devoirs pour les enfants et les adolescents.</p>
+          </div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path class="plein" d="M12 8.6l3.23 2.35-1.23 3.8h-4l-1.23-3.8z" />
+            <path d="M12 8.6V4.2M15.23 10.95l4.2-1.36M14 14.75l2.6 3.57M10 14.75l-2.6 3.57M8.77 10.95l-4.2-1.36" />
+          </svg>
+          <div>
+            <h2>Inscription sportive</h2>
+            <p>Les 5-20 ans dans les clubs de l'Eurométropole.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="action">
+        <div class="qr-cadre">
+          <img class="qr" src="../assets/qr-site.svg" alt="" />
+        </div>
+        <div>
+          <h2>Prenez rendez-vous en ligne</h2>
+          <p>Scannez le code : choisissez un créneau, nous vous recevons. Sans compte à créer.</p>
+          <span class="url">asso.afrique.est-sa.org</span>
+        </div>
+      </div>
+
+      <footer class="pied">
+        <span>
+          <strong>B'CoWorker</strong> &middot; Espace Européen de l'Entreprise<br />
+          23 rue de la Haye, 67300 Schiltigheim
+        </span>
+        <span class="tel">06 05 67 59 11</span>
+      </footer>
+    </div>
+  </body>
+</html>

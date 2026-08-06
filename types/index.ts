@@ -75,13 +75,20 @@ export type Donation = {
 
 export type FiscalReceipt = {
   id: string
-  user_id: string
+  /** NULL après suppression du compte : le reçu survit, détaché — voir archived_identity. */
+  user_id: string | null
   donation_ids: string[]
   year: number
   total_amount: number
   cerfa_number: string
   pdf_url?: string
   sent_at?: string
+  /**
+   * Identité figée lors de la suppression du compte. Le reçu CERFA doit être
+   * conservé 6 ans au titre de l'obligation comptable : sans cette copie, il ne
+   * serait plus rattachable à personne.
+   */
+  archived_identity?: Record<string, unknown> | null
   created_at: string
 }
 

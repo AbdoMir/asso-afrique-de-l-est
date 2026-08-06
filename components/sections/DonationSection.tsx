@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
+import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import { cn } from '@/lib/utils'
 import type { MembershipFormula, MembershipType } from '@/types'
@@ -178,7 +179,9 @@ export function DonationSection() {
   } = useForm<DonationFormData>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
-      newsletter_consent: true,
+      // Décoché par défaut : un consentement pré-coché n'est pas un acte positif
+      // et ne vaut pas consentement au sens du RGPD (CJUE Planet49, C-673/17).
+      newsletter_consent: false,
     },
   })
 
@@ -572,7 +575,6 @@ export function DonationSection() {
                           <input
                             type="checkbox"
                             className="peer sr-only"
-                            defaultChecked
                             {...register('newsletter_consent')}
                           />
                           <div className="w-5 h-5 border-2 border-warm-300 rounded peer-checked:bg-secondary-500 peer-checked:border-secondary-500 transition-colors" />
@@ -606,6 +608,12 @@ export function DonationSection() {
                       Continuer vers le paiement
                     </Button>
                   </div>
+
+                  <PrivacyNotice
+                    purpose="pour gérer votre adhésion et éditer votre reçu fiscal"
+                    retention="6 ans, au titre de nos obligations comptables"
+                    className="mt-4"
+                  />
                 </form>
               </div>
             </motion.div>

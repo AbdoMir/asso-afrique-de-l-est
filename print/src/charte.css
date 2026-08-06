@@ -1,0 +1,146 @@
+/* ============================================================================
+   Charte partagee des supports imprimes
+   Association Afrique de l'Est et ses amis
+
+   Socle commun aux trois pistes : jetons de couleur, polices, cadre de page.
+   Chaque piste porte sa propre mise en page dans son fichier HTML — c'est la
+   ou les directions divergent, et il faut pouvoir les comparer sans qu'elles
+   se contaminent.
+
+   Toutes les dimensions sont en mm (le document est physique, pas un ecran) et
+   les tailles de texte en pt (l'unite des imprimeurs).
+   ========================================================================= */
+
+:root {
+  /* --- Palette du site (tailwind.config.ts) ------------------------------ */
+  --orange: #e8702a; /* primary-500 */
+  --orange-fonce: #b44514; /* primary-700 */
+  --orange-pale: #ffedd5; /* primary-100 */
+  --vert: #2d7d46; /* secondary-500 */
+  --vert-fonce: #14532d; /* secondary-900 */
+  --ambre: #f4a935; /* accent-500 */
+  --encre: #2a2319; /* warm-900 */
+  --encre-douce: #6b5c43; /* warm-700 */
+  --papier: #fefaf5; /* warm-50 */
+  --papier-2: #f5f0e8; /* warm-100 */
+  --trait: #ddd3be; /* warm-300 */
+
+  /* --- Couleurs propres au logo ------------------------------------------
+     Le logo existant va de l'orange au bleu canard, la ou la charte du site va
+     de l'orange au vert. Les pistes traitent cet ecart differemment : ces deux
+     jetons servent aux directions qui s'alignent sur le logo plutot que sur le
+     site. */
+  --canard: #1e6e86;
+  --canard-encre: #12303d;
+
+  /* --- Typographie ------------------------------------------------------- */
+  --display: 'Outfit', system-ui, sans-serif; /* titres, gros calibres */
+  --texte: 'Inter', system-ui, sans-serif; /* courants, listes, coordonnees */
+  --arabe: 'Noto Sans Arabic', system-ui, sans-serif;
+}
+
+/* --- Trilingue -------------------------------------------------------------
+   Les supports s'adressent a une communaute francophone, anglophone et
+   arabophone. Le francais reste dominant (le support est affiche en France et
+   le site est en francais), l'anglais et l'arabe suivent au meme niveau.
+
+   L'arabe demande un traitement propre : sens d'ecriture inverse, oeil plus
+   petit a taille egale — d'ou une majoration d'environ 15 % — et un interligne
+   plus genereux pour loger les signes suscrits et souscrits. */
+.en {
+  font-family: var(--texte);
+}
+
+.ar {
+  font-family: var(--arabe);
+  direction: rtl;
+  line-height: 1.75;
+  /* Noto Sans Arabic n'a pas de graisse 800/900 : plafonner a 700 evite que
+     Chrome ne fabrique un faux gras. */
+  font-synthesis: none;
+
+  /* Ferrage a gauche, comme le francais et l'anglais. Sans cette ligne,
+     `direction: rtl` fait resoudre le `text-align: start` par defaut vers la
+     DROITE : l'arabe part alors seul a l'autre bout du bloc et rompt la colonne
+     de lecture. Le sens du texte et la ponctuation restent gouvernes par
+     `direction`, seul l'alignement du bloc est ramene sur la marge commune. */
+  text-align: left;
+}
+
+/* Exception : dans un bloc centre, l'arabe se centre avec le reste. */
+.ar.centre {
+  text-align: center;
+}
+
+/* --- Cadre de page --------------------------------------------------------
+   Aucune marge d'imprimante : les fonds perdus sont geres dans la maquette. */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #fff;
+}
+
+body {
+  font-family: var(--texte);
+  color: var(--encre);
+  /* Sans cette regle, Chrome supprime les aplats de couleur a l'impression et
+     le PDF sort en blanc. */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-rendering: geometricPrecision;
+  font-kerning: normal;
+}
+
+.page {
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  page-break-after: always;
+  background: var(--papier);
+}
+
+.page:last-child {
+  page-break-after: auto;
+}
+
+/* Format flyer : meme cadre, demi-format. */
+.page--a5 {
+  width: 148mm;
+  height: 210mm;
+}
+
+/* --- Elements partages ----------------------------------------------------- */
+
+/* Le QR doit rester lisible : jamais de fond colore derriere les modules, et
+   40 mm minimum de cote pour un scan a environ un metre. */
+.qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: #000; /* les modules heritent de currentColor */
+}
+
+.qr-cadre {
+  background: #fff;
+  padding: 3mm;
+}
+
+/* Reperes de coupe et zone de securite, actives par ?reperes dans build.mjs */
+.reperes .page::after {
+  content: '';
+  position: absolute;
+  inset: 12mm;
+  border: 0.2mm dashed rgba(232, 112, 42, 0.5);
+  pointer-events: none;
+}

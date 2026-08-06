@@ -52,6 +52,11 @@ export default function MemberDashboard() {
   const [zipCode, setZipCode] = useState('')
   const [updatingProfile, setUpdatingProfile] = useState(false)
 
+  // Droits RGPD : export (art. 15 et 20) et suppression du compte (art. 17)
+  const [exporting, setExporting] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
   const supabase = createClientSafe()
 
   useEffect(() => {
@@ -296,6 +301,91 @@ export default function MemberDashboard() {
       })
     } finally {
       setUpdatingProfile(false)
+    }
+  }
+
+  // ─── Droits RGPD ───────────────────────────────────────────────────────────
+
+  /** Droit d'accès et de portabilité (art. 15 et 20) : export JSON. */
+  const handleExportData = async () => {
+    if (isMock) {
+      toast({
+        title: 'Mode Démo',
+        description: "L'export de données n'est pas disponible en mode démo.",
+      })
+      return
+    }
+
+    setExporting(true)
+    try {
+      const response = await fetch('/api/compte/export')
+      if (!response.ok) throw new Error("L'export a échoué.")
+
+      // Passer par un Blob plutôt que par un lien direct : la route exige la
+      // session, qu'un téléchargement déclenché hors fetch ne porterait pas
+      // toujours selon le navigateur.
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `mes-donnees-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: 'Export téléchargé',
+        description: 'Le fichier contient toutes les données que nous détenons sur vous.',
+        variant: 'success',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || "Impossible d'exporter vos données.",
+        variant: 'error',
+      })
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  /** Droit à l'effacement (art. 17). Irréversible. */
+  const handleDeleteAccount = async () => {
+    if (isMock) {
+      toast({
+        title: 'Mode Démo',
+        description: "La suppression de compte n'est pas disponible en mode démo.",
+      })
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const response = await fetch('/api/compte/suppression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: deleteConfirmation }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'La suppression a échoué.')
+
+      toast({
+        title: 'Compte supprimé',
+        description: 'Vos données personnelles ont été effacées. Merci de nous avoir accompagnés.',
+        variant: 'success',
+      })
+
+      router.push('/')
+      router.refresh()
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible de supprimer votre compte.',
+        variant: 'error',
+      })
+      setDeleting(false)
     }
   }
 
@@ -1068,6 +1158,86 @@ export default function MemberDashboard() {
                       Enregistrer les modifications
                     </Button>
                   </form>
+
+                  {/* ── Droits RGPD ── */}
+                  <div className="border-t border-warm-100 pt-8 mt-10 space-y-6">
+                    <div>
+                      <h3 className="font-display font-black text-2xl text-warm-900">
+                        Mes données personnelles
+                      </h3>
+                      <p className="text-warm-500 text-sm">
+                        Le RGPD vous donne la main sur les données que nous détenons sur vous.
+                      </p>
+                    </div>
+
+                    {/* Export — art. 15 et 20 */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-warm-50 border border-warm-100 rounded-xl p-5">
+                      <div className="flex-1">
+                        <p className="font-semibold text-warm-900 text-sm">
+                          Récupérer une copie de mes données
+                        </p>
+                        <p className="text-warm-500 text-xs mt-1 leading-relaxed">
+                          Profil, adhésions, dons, reçus fiscaux, rendez-vous et
+                          inscription à la newsletter, dans un fichier JSON.
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={handleExportData}
+                        isLoading={exporting}
+                        leftIcon={<Download className="w-4 h-4" />}
+                        className="shrink-0"
+                      >
+                        Exporter
+                      </Button>
+                    </div>
+
+                    {/* Effacement — art. 17 */}
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-5 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-red-900 text-sm">
+                            Supprimer mon compte
+                          </p>
+                          <p className="text-red-700 text-xs mt-1 leading-relaxed">
+                            Votre compte, votre profil, vos documents et vos
+                            rendez-vous seront effacés définitivement. Cette
+                            action est irréversible.
+                          </p>
+                          <p className="text-red-700 text-xs mt-2 leading-relaxed">
+                            Vos dons et reçus fiscaux sont conservés 6 ans, comme
+                            la loi comptable nous y oblige, mais ils ne seront
+                            plus rattachés à votre compte.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pl-8 space-y-3">
+                        <label className="block text-xs font-medium text-red-900">
+                          Tapez <strong>SUPPRIMER</strong> pour confirmer
+                          <input
+                            type="text"
+                            value={deleteConfirmation}
+                            onChange={(e) => setDeleteConfirmation(e.target.value)}
+                            placeholder="SUPPRIMER"
+                            autoComplete="off"
+                            className="mt-1.5 w-full sm:w-64 px-3 py-2 text-sm border border-red-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+                          />
+                        </label>
+                        <Button
+                          variant="outline"
+                          onClick={handleDeleteAccount}
+                          isLoading={deleting}
+                          disabled={deleteConfirmation !== 'SUPPRIMER'}
+                          leftIcon={<Trash2 className="w-4 h-4" />}
+                          className="border-red-300 text-red-700 hover:bg-red-100"
+                        >
+                          Supprimer définitivement mon compte
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
 

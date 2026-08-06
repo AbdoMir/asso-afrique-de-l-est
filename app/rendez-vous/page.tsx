@@ -10,6 +10,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
+import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import type { AppointmentType, AppointmentSlot } from '@/types'
 
@@ -377,6 +378,12 @@ export default function RendezVousPage() {
                         >
                           Confirmer le rendez-vous
                         </Button>
+
+                        <PrivacyNotice
+                          purpose="pour organiser votre rendez-vous et préparer votre accompagnement"
+                          retention="12 mois après le rendez-vous"
+                          className="mt-4"
+                        />
                       </motion.div>
                     )}
                   </motion.form>

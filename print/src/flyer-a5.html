@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Flyer A5 recto-verso — Association Afrique de l'Est et ses amis</title>
+    <link rel="stylesheet" href="../assets/fonts.css" />
+    <link rel="stylesheet" href="charte.css" />
+    <style>
+      /* ======================================================================
+         FLYER A5 RECTO-VERSO — direction « Le pont », trilingue
+
+         Deux pages dans un seul PDF, a imprimer en recto-verso. Meme direction
+         que l'affiche A4, mais la logique de lecture change : on tient le tract
+         en main. Le recto ne porte qu'une accroche et un grand QR ; tout le
+         detail passe au verso, lu a 40 cm.
+
+         Le trilinguisme s'organise autrement qu'en A4 : les 148 mm de large ne
+         permettent pas trois colonnes lisibles, donc les langues s'empilent
+         sous chaque service. Les descriptions sont supprimees — traduire trois
+         fois « aide aux devoirs » remplit la page sans rien apprendre, et les
+         intitules se suffisent.
+
+         La courbe du pont est reprise en proportions du format, pas copiee en
+         millimetres : elle doit couper la page au meme endroit relatif qu'en A4.
+         =================================================================== */
+
+      /* charte.css impose A4 ; ce document est en A5. */
+      @page {
+        size: 148mm 210mm;
+        margin: 0;
+      }
+
+      /* ====================== RECTO ======================================= */
+
+      .recto {
+        background: var(--papier);
+      }
+
+      .pont {
+        position: absolute;
+        inset: 0;
+        width: 148mm;
+        height: 210mm;
+      }
+
+      .haut {
+        position: absolute;
+        left: 11mm;
+        right: 11mm;
+        top: 11mm;
+      }
+
+      .logo {
+        display: block;
+        width: 68mm;
+        margin-bottom: 5mm;
+      }
+
+      .surtitre {
+        font-size: 7.5pt;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--orange);
+        margin-bottom: 3mm;
+      }
+
+      h1 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 18pt;
+        line-height: 1.06;
+        letter-spacing: -0.025em;
+        color: var(--canard-encre);
+        text-wrap: balance;
+      }
+
+      h1 em {
+        font-style: normal;
+        color: var(--orange);
+      }
+
+      .echo {
+        margin-top: 3mm;
+        font-weight: 600;
+        color: var(--canard-encre);
+      }
+
+      .echo.en {
+        font-size: 10pt;
+      }
+
+      .echo.ar {
+        margin-top: 1mm;
+        font-size: 11.5pt;
+        line-height: 1.4;
+      }
+
+      /* --- Zone d'action, sur l'autre rive -------------------------------- */
+      .action {
+        position: absolute;
+        left: 11mm;
+        right: 11mm;
+        top: 104mm; /* la courbe descend a 100 mm au centre du format */
+        text-align: center;
+        color: #fff;
+      }
+
+      .action h2 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 14pt;
+        letter-spacing: -0.015em;
+      }
+
+      .action .h2-en {
+        margin-top: 1.5mm;
+        font-size: 10pt;
+        font-weight: 600;
+      }
+
+      .action .h2-ar {
+        margin-top: 1mm;
+        font-size: 11.5pt;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+
+      .action .qr-cadre {
+        width: 40mm;
+        height: 40mm;
+        margin: 4.5mm auto 0;
+        border-radius: 2mm;
+      }
+
+      .action .scannez {
+        display: block;
+        margin-top: 3mm;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 10pt;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ambre);
+      }
+
+      .action .scannez-ar {
+        display: block;
+        margin-top: 0.5mm;
+        font-size: 10pt;
+        font-weight: 600;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .action .url {
+        display: block;
+        margin-top: 2.5mm;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 11.5pt;
+        color: #fff;
+      }
+
+      /* --- Bandeau de coordonnees (commun aux deux faces) ------------------ */
+      .coordonnees {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 18mm;
+        background: var(--orange);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5mm;
+        padding: 0 11mm;
+        font-size: 8.5pt;
+        font-weight: 500;
+        line-height: 1.35;
+      }
+
+      .coordonnees strong {
+        font-weight: 700;
+      }
+
+      .coordonnees .tel {
+        font-size: 11pt;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      /* ====================== VERSO ======================================= */
+
+      .verso {
+        background: var(--papier);
+        padding: 12mm 11mm 24mm;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .verso h2 {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 14pt;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+        color: var(--canard-encre);
+        margin-bottom: 6mm;
+      }
+
+      .verso h2 em {
+        font-style: normal;
+        color: var(--orange);
+      }
+
+      /* Les trois langues du titre sur une seule ligne, separees par le meme
+         point median que le reste du document. En deux lignes, l'arabe pose en
+         dessous se lisait comme une note ajoutee apres coup. */
+      .verso h2 .ar {
+        font-size: 0.88em;
+        font-weight: 700; /* Noto Sans Arabic n'a pas de 900 */
+        line-height: 1.2;
+        /* Le point median colle a l'arabe sans cette marge : a la bascule
+           LTR -> RTL, l'espace de la source est absorbe. */
+        margin-left: 1.8mm;
+      }
+
+      /* --- Les quatre services, langues empilees ---------------------------
+         Tous les blocs arabes du document sont ferres a GAUCHE, comme le
+         francais et l'anglais : les trois langues s'empilent sous un meme
+         service et doivent se lire comme un bloc. Ferre a droite, l'arabe se
+         detachait a l'autre bout de la ligne et le lien avec le service se
+         perdait. `direction: rtl` reste actif — c'est lui qui gouverne le sens
+         du texte et la position de la ponctuation. */
+      .services {
+        list-style: none;
+        display: grid;
+        gap: 6mm;
+      }
+
+      .services li {
+        padding-left: 6.5mm;
+        position: relative;
+      }
+
+      .services li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 1.1mm;
+        width: 3mm;
+        height: 3mm;
+        background: var(--orange);
+        border-radius: 0.5mm;
+      }
+
+      .services .fr {
+        display: block;
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 11.5pt;
+        line-height: 1.2;
+        color: var(--canard-encre);
+      }
+
+      .services .en {
+        display: block;
+        font-size: 9.5pt;
+        line-height: 1.35;
+        color: var(--encre-douce);
+      }
+
+      .services .ar {
+        display: block;
+        margin-top: 0.5mm;
+        font-size: 11pt;
+        line-height: 1.4;
+        color: var(--canard-encre);
+      }
+
+      /* --- Ce que le site permet ------------------------------------------ */
+      .en-ligne {
+        margin-top: auto;
+        background: var(--canard-encre);
+        border-radius: 3mm;
+        padding: 5mm;
+        display: flex;
+        align-items: center;
+        gap: 5mm;
+        color: #fff;
+      }
+
+      .en-ligne .qr-cadre {
+        width: 28mm;
+        height: 28mm;
+        border-radius: 1.5mm;
+        padding: 1.5mm;
+        flex-shrink: 0;
+      }
+
+      .en-ligne h3 {
+        font-family: var(--display);
+        font-weight: 800;
+        font-size: 11.5pt;
+        color: var(--ambre);
+        margin-bottom: 1.5mm;
+      }
+
+      .en-ligne ul {
+        list-style: none;
+        font-size: 8.5pt;
+        line-height: 1.45;
+      }
+
+      /* Triangle trace en CSS plutot qu'un caractere « → » : la fleche Unicode
+         n'existe ni dans Inter ni dans Outfit, et Chrome basculait sur une
+         police systeme pour ces lignes. */
+      .en-ligne li::before {
+        content: '';
+        display: inline-block;
+        width: 0;
+        height: 0;
+        border-left: 1.5mm solid var(--orange);
+        border-top: 0.9mm solid transparent;
+        border-bottom: 0.9mm solid transparent;
+        margin-right: 1.8mm;
+        vertical-align: 0.3mm;
+      }
+
+      .en-ligne .ar {
+        margin-top: 1.5mm;
+        font-size: 9.5pt;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      /* --- Bande des six pays ----------------------------------------------
+         Chaque pays forme une colonne : nom francais, traduction arabe dessous.
+         En deux lignes continues, la ligne arabe se composant de droite a
+         gauche, chaque nom arabe tombait sous le mauvais nom francais. */
+      .pays {
+        margin-top: 4mm;
+        padding-top: 3mm;
+        border-top: 0.3mm solid var(--trait);
+        display: flex;
+        justify-content: space-between;
+        gap: 2.5mm;
+        color: var(--encre-douce);
+      }
+
+      .pays .fr {
+        display: block;
+        font-size: 7pt;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .pays .ar {
+        display: block;
+        margin-top: 0.5mm;
+        font-size: 9pt;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ========================= RECTO ================================== -->
+    <div class="page page--a5 recto">
+      <svg class="pont" viewBox="0 0 148 210" aria-hidden="true">
+        <path d="M0 108 C 44 108, 79 94, 148 90 L148 210 L0 210 Z" fill="#12303D" />
+        <path
+          d="M0 104 C 44 104, 79 90, 148 86"
+          fill="none"
+          stroke="#E8702A"
+          stroke-width="0.9"
+          stroke-linecap="round"
+        />
+      </svg>
+
+      <header class="haut">
+        <img class="logo" src="../assets/logo.png" alt="" />
+        <p class="surtitre">Association loi 1901 &middot; Eurométropole de Strasbourg</p>
+        <!-- Apostrophes typographiques U+2019 « ’ » et non l'apostrophe droite
+             du clavier : forme correcte en composition francaise. -->
+        <h1>De l’Afrique de l’Est à Strasbourg, <em>vous n’êtes pas seuls.</em></h1>
+        <!-- Virgule et pas tiret, pour calquer la ponctuation du titre francais.
+             L'arabe prend la virgule arabe U+060C « ، », pas la virgule latine. -->
+        <p class="echo en">From East Africa to Strasbourg, you are not alone.</p>
+        <p class="echo ar">من شرق أفريقيا إلى ستراسبورغ، لستم وحدكم.</p>
+      </header>
+
+      <div class="action">
+        <h2>Prenez rendez-vous en ligne</h2>
+        <p class="h2-en en">Book an appointment online</p>
+        <p class="h2-ar ar centre">احجز موعدًا عبر الإنترنت</p>
+
+        <div class="qr-cadre">
+          <img class="qr" src="../assets/qr-site.svg" alt="" />
+        </div>
+        <span class="scannez">Scannez &middot; Scan</span>
+        <span class="scannez-ar ar centre">امسح الرمز</span>
+        <span class="url">asso.afrique.est-sa.org</span>
+      </div>
+
+      <footer class="coordonnees">
+        <span>
+          <strong>B'CoWorker</strong> &middot; Espace Européen de l’Entreprise<br />
+          23 rue de la Haye, 67300 Schiltigheim
+        </span>
+        <span class="tel">06 05 67 59 11</span>
+      </footer>
+    </div>
+
+    <!-- ========================= VERSO ================================== -->
+    <div class="page page--a5 verso">
+      <h2>
+        Ce que nous <em>faisons</em> &middot; What we do &middot;
+        <span class="ar">ما نقوم به</span>
+      </h2>
+
+      <ul class="services">
+        <li>
+          <span class="fr">Démarches administratives</span>
+          <span class="en">Administrative paperwork</span>
+          <span class="ar">الإجراءات الإدارية</span>
+        </li>
+        <li>
+          <span class="fr">Cours de français</span>
+          <span class="en">French classes</span>
+          <span class="ar">دروس اللغة الفرنسية</span>
+        </li>
+        <li>
+          <span class="fr">Soutien scolaire</span>
+          <span class="en">Homework support</span>
+          <span class="ar">الدعم المدرسي</span>
+        </li>
+        <li>
+          <span class="fr">Inscription sportive</span>
+          <span class="en">Sports club sign-up</span>
+          <span class="ar">التسجيل في الأندية الرياضية</span>
+        </li>
+      </ul>
+
+      <div class="en-ligne">
+        <div class="qr-cadre">
+          <img class="qr" src="../assets/qr-site.svg" alt="" />
+        </div>
+        <div>
+          <h3>Sur asso.afrique.est-sa.org</h3>
+          <ul>
+            <li>Prendre rendez-vous &middot; Book an appointment</li>
+            <li>Découvrir nos actions &middot; See our work</li>
+            <li>Espace adhérent &middot; Members’ area</li>
+          </ul>
+          <p class="ar">احجز موعدًا &middot; تعرّف على أنشطتنا &middot; فضاء الأعضاء</p>
+        </div>
+      </div>
+
+      <div class="pays">
+        <div><span class="fr">Somalie</span><span class="ar centre">الصومال</span></div>
+        <div><span class="fr">Éthiopie</span><span class="ar centre">إثيوبيا</span></div>
+        <div><span class="fr">Somaliland</span><span class="ar centre">صوماليلاند</span></div>
+        <div><span class="fr">Érythrée</span><span class="ar centre">إريتريا</span></div>
+        <div><span class="fr">Soudan</span><span class="ar centre">السودان</span></div>
+        <div><span class="fr">Djibouti</span><span class="ar centre">جيبوتي</span></div>
+      </div>
+
+      <footer class="coordonnees">
+        <span>
+          <strong>B'CoWorker</strong> &middot; Espace Européen de l’Entreprise<br />
+          23 rue de la Haye, 67300 Schiltigheim
+        </span>
+        <span class="tel">06 05 67 59 11</span>
+      </footer>
+    </div>
+  </body>
+</html>

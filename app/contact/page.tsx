@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Phone, MapPin, Send, CheckCircle2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
+import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 
 const schema = z.object({
@@ -245,6 +246,12 @@ export default function ContactPage() {
                     >
                       Envoyer le message
                     </Button>
+
+                    <PrivacyNotice
+                      purpose="pour traiter votre demande et y répondre"
+                      retention="12 mois"
+                      className="mt-4"
+                    />
                   </motion.form>
                 )}
               </AnimatePresence>
