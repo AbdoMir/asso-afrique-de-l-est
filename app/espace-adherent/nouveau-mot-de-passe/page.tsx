@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
+import { checkPassword, PASSWORD_HINT } from '@/lib/password-policy'
 import Link from 'next/link'
 
 export default function NouveauMotDePassePage() {
@@ -19,16 +20,21 @@ export default function NouveauMotDePassePage() {
     e.preventDefault()
     setErrorMsg('')
 
-    if (password.length < 6) {
-      setErrorMsg('Le mot de passe doit contenir au moins 6 caractères.')
-      return
-    }
     if (password !== confirmPassword) {
       setErrorMsg('Les mots de passe ne correspondent pas.')
       return
     }
 
     setLoading(true)
+
+    // Longueur, répétitions, puis présence dans les fuites connues.
+    const passwordError = await checkPassword(password)
+    if (passwordError) {
+      setErrorMsg(passwordError)
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = createClient()
       const { error } = await supabase.auth.updateUser({ password })
@@ -89,12 +95,13 @@ export default function NouveauMotDePassePage() {
             <Input
               type="password"
               label="Nouveau mot de passe"
-              placeholder="Minimum 6 caractères"
+              placeholder="••••••••••••"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leftAddon={<Lock className="w-4 h-4" />}
             />
+            <p className="text-xs text-warm-500 -mt-2">{PASSWORD_HINT}</p>
             <Input
               type="password"
               label="Confirmer le mot de passe"

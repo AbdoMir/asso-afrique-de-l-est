@@ -8,6 +8,7 @@ import { Globe, Mail, Lock, User, Phone, CheckCircle, AlertTriangle, ArrowRight,
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
+import { checkPassword, PASSWORD_HINT } from '@/lib/password-policy'
 import Link from 'next/link'
 
 function LoginForm() {
@@ -178,6 +179,15 @@ function LoginForm() {
 
     setLoading(true)
     setErrorMsg('')
+
+    // Longueur, répétitions, puis présence dans les fuites connues. Ce contrôle
+    // remplace la protection native de Supabase, réservée à ses offres payantes.
+    const passwordError = await checkPassword(password)
+    if (passwordError) {
+      setErrorMsg(passwordError)
+      setLoading(false)
+      return
+    }
 
     if (isMockMode) {
       setTimeout(() => {
@@ -465,12 +475,13 @@ function LoginForm() {
                 <Input
                   type="password"
                   label="Mot de passe"
-                  placeholder="Minimum 6 caractères"
+                  placeholder="••••••••••••"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   leftAddon={<Lock className="w-4 h-4" />}
                 />
+                <p className="text-xs text-warm-500 -mt-2">{PASSWORD_HINT}</p>
 
                 <Button
                   type="submit"

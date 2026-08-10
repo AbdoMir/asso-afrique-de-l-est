@@ -15,7 +15,7 @@
 - **Responsable de traitement** : Association Afrique de l'Est et ses amis (loi 1901)
 - **Représentant légal** : Ismael Ali Moussa, Président
 - **Référent RGPD** : *à désigner* (voir point 13)
-- **Dernière revue** : 6 août 2026
+- **Dernière revue** : 6 août 2026 (audit d'architecture Supabase + Vercel, section 8)
 
 ---
 
@@ -80,6 +80,14 @@ Légende : ✅ fait · 🚧 en cours · ❌ à faire · ⬜ non applicable
 | Limitation de débit sur les routes publiques et admin | ✅ | [lib/rate-limit.ts](../lib/rate-limit.ts) |
 | Validation des fichiers déposés (magic bytes, taille, type) | ✅ | [lib/file-validation.ts](../lib/file-validation.ts) |
 | Droit de rectification en self-service | ✅ | onglet Profil de l'espace adhérent |
+| Chiffrement en transit (HSTS) | ✅ | `max-age=63072000; includeSubDomains`, déclaré dans [next.config.js](../next.config.js) |
+| Fonctions `SECURITY DEFINER` non exposées via l'API | ✅ | migration 012 — `anon` et `authenticated` révoqués, vérifié en base |
+| En-têtes de sécurité HTTP (CSP, X-Frame-Options…) | ✅ | [next.config.js](../next.config.js), CSP vérifiée au navigateur |
+| Limites serveur sur les buckets (taille, types MIME) | ✅ | migration 012 — 4 Mo et 4 types sur `member-documents` |
+| Protection contre les mots de passe compromis | ✅ *par compensation* | fonction native réservée au plan Pro Supabase — réimplémentée dans [lib/password-policy.ts](../lib/password-policy.ts) |
+| Politique de mot de passe (longueur, composition) | ✅ | 12 caractères, lettre + chiffre — code et tableau de bord Supabase |
+| Sauvegardes vérifiées et restauration testée | ❌ | jamais testé ; plan gratuit, pas de PITR — voir section 8 |
+| Chiffrement applicatif des documents art. 9 | ❌ | absent — voir section 8 |
 
 ---
 
@@ -108,8 +116,8 @@ Légende : ✅ fait · 🚧 en cours · ❌ à faire · ⬜ non applicable
 
 | Sous-traitant | Rôle | Localisation | DPA | À faire |
 |---|---|---|---|---|
-| **Supabase** | Base de données, authentification, stockage | 🇪🇺 Stockholm (`eu-north-1`) | à archiver | Récupérer le DPA signé |
-| **Vercel Inc.** | Hébergement, mesure d'audience | 🇺🇸 US (edge UE) | à archiver | DPA + TIA (transfert hors UE) |
+| **Supabase** | Base de données, authentification, stockage | 🇪🇺 Stockholm (`eu-north-1`) | à archiver | Récupérer le DPA signé (il intègre les CCT) |
+| **Vercel Inc.** | Hébergement, mesure d'audience | 🇺🇸 US (edge UE) | à archiver | DPA + TIA. Vercel est certifié **Data Privacy Framework** — le vérifier sur le registre officiel et l'archiver |
 | **Resend** | Envoi des emails transactionnels | 🇺🇸 US | à archiver | DPA + TIA |
 | **Upstash** | Compteurs de limitation de débit (IP) | à vérifier | à archiver | Vérifier la région, DPA |
 | **HelloAsso** | Paiements, adhésions, reçus fiscaux CERFA | 🇫🇷 France | à archiver | Récupérer le DPA |
@@ -190,10 +198,151 @@ document de l'association.
    recueil du consentement parental.
 9. **Journalisation des accès admin** : table d'audit recensant qui consulte
    quel message ou quel rendez-vous.
+10. **Tester une restauration de sauvegarde** et décider si le plan gratuit
+    Supabase suffit — 7 jours de rétention, aucune restauration à un instant T,
+    et mise en veille du projet après une semaine d'inactivité (art. 32).
+11. **Chiffrement applicatif** des documents adhérents relevant de l'art. 9, ou
+    décision motivée de s'en remettre au chiffrement au repos de Supabase.
+
+### Correctifs techniques rapides (issus de l'audit d'architecture, section 8)
+
+Tous traités. Pour mémoire :
+
+- ✅ `CRON_SECRET` défini dans Vercel — route de purge vérifiée en production
+  (401 sans authentification, au lieu du 503 précédent).
+- ✅ Révocation des fonctions `SECURITY DEFINER`, en-têtes de sécurité HTTP,
+  limites serveur des buckets (migration 012 et `next.config.js`).
+- ✅ Mots de passe compromis : compensés par une vérification maison, la
+  fonction native étant réservée au plan Pro (voir section 8).
+- ✅ Réglages Supabase durcis : *Secure password change* activé, longueur
+  minimale portée à 8, exigence lettres + chiffres, expiration des liens email
+  ramenée de 3600 à 1800 secondes.
+
+⚠️ **Le déploiement reste à faire** pour la partie code : les en-têtes de
+sécurité et la politique de mot de passe ne seront actifs qu'après avoir poussé
+`next.config.js`, `lib/password-policy.ts` et `app/api/auth/pwned/`.
 
 ---
 
-## 8. Journal des modifications
+## 8. Architecture Supabase + Vercel — audit du 6 août 2026
+
+Audit mené à partir de l'article [« Gestion des données sensibles de l'Union
+européenne avec Supabase et Vercel »](https://404-collective.com/blog/gestion-des-donnees-sensibles-de-l-union-europeenne-avec-supabase-et-vercel)
+(404 Collective), dont chaque mesure a été confrontée à l'état réel du projet —
+base de production et code — et non au dépôt seul.
+
+> ⚠️ **Réserve sur l'article.** Il présente `eu-west-2` (Londres) comme une
+> région UE. Depuis le Brexit, le Royaume-Uni est un **pays tiers** : y héberger
+> des données reste possible grâce à la décision d'adéquation de 2021, mais cela
+> constitue un transfert international, à traiter comme tel. Sa liste de régions
+> est par ailleurs incomplète — `eu-north-1` (Stockholm), que nous utilisons,
+> n'y figure pas alors qu'elle est bien dans l'UE.
+
+### Mesures respectées
+
+| Mesure préconisée | État | Preuve vérifiée |
+|---|---|---|
+| Région UE à la création du projet | ✅ | `eu-north-1` (Stockholm), API Supabase |
+| RLS activé sur toutes les tables | ✅ | 9 tables sur 9, 21 policies au total |
+| Ne jamais exposer `service_role` au navigateur | ✅ | présent uniquement dans [lib/supabase/admin.ts](../lib/supabase/admin.ts) ; aucun fichier `'use client'` ne l'importe |
+| Aucun secret préfixé `NEXT_PUBLIC_` | ✅ | vérifié sur tout le code et `.env.example` |
+| Opérations privilégiées via fonctions serveur | ✅ | route handlers Next.js, jamais le navigateur |
+| MFA / TOTP pour les comptes privilégiés | ✅ | obligatoire pour le staff (migration 006) |
+| Protection contre le bourrinage | ✅ | défauts Supabase + [lib/rate-limit.ts](../lib/rate-limit.ts) |
+| Chiffrement en transit (HTTPS/TLS) | ✅ | HSTS `max-age=63072000` en production |
+| Chiffrement au repos | ✅ | assuré par Supabase/AWS |
+| Stockage privé des fichiers | ✅ | `fiscal-receipts` et `member-documents` : `public = false` |
+| Droit d'accès — export | ✅ | [api/compte/export](../app/api/compte/export/route.ts) |
+| Droit de rectification | ✅ | onglet Profil de l'espace adhérent |
+| Droit à l'effacement | ✅ | [api/compte/suppression](../app/api/compte/suppression/route.ts) |
+| Portabilité en format structuré (JSON) | ✅ | export JSON téléchargeable |
+| Minimisation des données | ✅ | aucun champ superflu dans les formulaires |
+| Pseudonymisation | 🟡 partielle | la suppression de compte détache les reçus fiscaux et fige l'identité dans `archived_identity` |
+| Politique de suppression / anonymisation | ⚠️ écrite mais **inactive** | code en place, mais `CRON_SECRET` absent de Vercel → la route renvoie 503 |
+
+### Mesures non respectées
+
+| Mesure préconisée | État | Détail |
+|---|---|---|
+| **Signer les DPA Supabase et Vercel** | ❌ | Aucun DPA récupéré ni archivé. L'article le qualifie d'« indispensable ». Concerne aussi Resend, Upstash et HelloAsso. |
+| **Vérifier les sauvegardes et tester la restauration** | ❌ | Jamais testé. Le projet s'est mis en veille pendant cet audit : c'est la signature du plan gratuit, qui n'offre que des sauvegardes quotidiennes conservées 7 jours et **aucune restauration à un instant T (PITR)**. L'art. 32 exige de pouvoir rétablir la disponibilité des données. |
+| **Chiffrement applicatif des données très sensibles** | ❌ | Aucun. Or les documents déposés par les adhérents (titres de séjour, pièces administratives) relèvent potentiellement de l'art. 9. Ils reposent uniquement sur le chiffrement au repos de Supabase et sur le cloisonnement RLS. |
+| **Registre des traitements** | 🚧 | Ébauche en section 3, pas de registre formel signé. |
+| Fournisseurs d'identité OAuth | ⬜ | Non applicable : authentification par email et mot de passe uniquement. Ce n'est pas une obligation. |
+
+### Écarts trouvés au-delà de l'article
+
+Quatre écarts relevés pendant la vérification. **Trois ont été corrigés le
+6 août 2026** ; le quatrième est un réglage de tableau de bord.
+
+| Écart | État |
+|---|---|
+| Deux fonctions `SECURITY DEFINER` (`check_appointment_capacity()`, `rls_auto_enable()`) appelables par `anon` et `authenticated` via `/rest/v1/rpc/…` | ✅ corrigé — migration 012 |
+| En-têtes de sécurité HTTP absents (seul HSTS était posé, par défaut Vercel) | ✅ corrigé — [next.config.js](../next.config.js) |
+| Buckets sans `file_size_limit` ni `allowed_mime_types` : la validation n'existait qu'au niveau applicatif, contournable par une clé détournée | ✅ corrigé — migration 012 |
+| Protection contre les mots de passe compromis désactivée | ✅ compensée — voir ci-dessous |
+
+### Mots de passe compromis : mesure native indisponible, compensation retenue
+
+**Le constat.** Supabase sait refuser les mots de passe figurant dans des fuites
+connues, mais réserve la fonction à ses offres payantes. Sur le plan gratuit,
+activer le curseur renvoie : *« Configuring leaked password protection via
+HaveIBeenPwned.org is available on Pro Plans and up »*. La mesure préconisée
+était donc inapplicable en l'état.
+
+**La compensation.** L'API « Pwned Passwords » de HaveIBeenPwned est publique et
+gratuite — l'offre Pro ne fait que l'appeler à votre place. Elle est donc
+appelée directement, à l'inscription et à chaque changement de mot de passe
+([lib/password-policy.ts](../lib/password-policy.ts),
+[api/auth/pwned](../app/api/auth/pwned/route.ts)).
+
+**Pourquoi cette implémentation est elle-même conforme.** Le mot de passe ne
+quitte jamais le navigateur. Son empreinte SHA-1 y est calculée, et seuls les
+**5 premiers caractères** de cette empreinte sont transmis — un préfixe partagé
+par des centaines de milliers de mots de passe. La comparaison finale se fait
+dans le navigateur. C'est le principe de *k-anonymat*. L'appel transite en outre
+par notre propre serveur, de sorte que l'adresse IP de l'adhérent n'est jamais
+exposée à un tiers, et que la CSP reste limitée à `'self'`.
+
+**Comportement en cas de panne** : si HaveIBeenPwned est injoignable, le mot de
+passe est accepté. Empêcher quelqu'un de créer son compte parce qu'un service
+tiers est hors ligne serait un remède pire que le mal.
+
+**Politique appliquée** : 12 caractères minimum, au moins une lettre et un
+chiffre, rejet des mots de passe trop répétitifs, puis rejet de ceux présents
+dans une fuite. Ce dernier contrôle est le plus efficace des quatre :
+`Motdepasse1!` respecte toutes les règles de composition imaginables et figure
+pourtant **6 869 fois** dans les fuites recensées.
+
+> ⚠️ Ces règles existent à deux endroits : `lib/password-policy.ts` et le
+> tableau de bord Supabase (Authentication → Sign In / Providers → Email). La
+> règle appliquée est toujours **la plus stricte des deux**, puisque le contrôle
+> applicatif s'exécute avant l'appel à Supabase.
+>
+> État actuel : exigence lettres + chiffres identique des deux côtés, mais
+> longueur minimale à **12 dans le code** et **8 chez Supabase**. C'est donc 12
+> qui s'applique. Porter le réglage Supabase à 12 supprimerait cet écart — sans
+> quoi une règle durcie côté tableau de bord pourrait un jour dépasser celle du
+> code et produire un message d'erreur brut en anglais.
+
+**Sur la révocation des fonctions** — un piège à retenir : `revoke execute … from
+anon, authenticated` ne suffit pas. PostgreSQL accorde `EXECUTE` au pseudo-rôle
+`public` à la création de toute fonction, et les deux rôles en héritent. Il faut
+révoquer sur `public`. Vérifié ensuite avec `has_function_privilege`, et le
+trigger de capacité continue de fonctionner (test de surréservation rejouée : la
+seconde réservation est bien refusée).
+
+**Sur la CSP** — `'unsafe-inline'` est conservé sur les scripts : la plupart des
+pages sont pré-rendues en statique et ne peuvent donc pas porter un nonce
+calculé par requête. La CSP garde l'essentiel de son intérêt (aucun script
+tiers, pas d'encadrement du site, `object-src 'none'`, `base-uri` verrouillé).
+`'unsafe-eval'` n'est présent qu'en développement. Vérifiée au navigateur sur
+l'accueil, l'adhésion, les rendez-vous, la connexion et les pages légales :
+aucune violation, Supabase joignable, et un domaine non déclaré bien bloqué.
+
+---
+
+## 9. Journal des modifications
 
 ### 6 août 2026 — Mise en conformité technique
 
@@ -223,6 +372,65 @@ appliquée en production le 6 août 2026.
 
 **À faire avant le prochain déploiement** : définir `CRON_SECRET` dans les
 variables d'environnement Vercel.
+
+### 6 août 2026 — Purge activée et politique de mot de passe
+
+- **`CRON_SECRET` défini dans Vercel.** La route de purge répond désormais 401
+  au lieu de 503 : le secret est en place et le cron nocturne peut s'exécuter.
+  La politique de confidentialité dit à nouveau vrai. À ce jour la purge ne
+  supprimera rien — le projet a deux mois, aucune donnée n'a atteint son terme —
+  mais le mécanisme est en place pour le jour où ce sera le cas.
+- **Réglages d'authentification Supabase durcis** : *Secure password change*
+  activé (session de moins de 24 h exigée pour changer de mot de passe),
+  longueur minimale portée de 6 à 8, exigence lettres + chiffres, expiration des
+  liens email ramenée de 1 h à 30 min. *Require current password when updating*
+  laissé désactivé : il casserait le parcours « mot de passe oublié », qui par
+  nature ne peut pas fournir l'ancien mot de passe.
+- **Politique de mot de passe applicative** (voir section 8) : 12 caractères,
+  lettre + chiffre, rejet des mots de passe déjà fuités via HaveIBeenPwned.
+  10 tests unitaires ajoutés, dont la vérification qu'aucune donnée plus longue
+  que les 5 premiers caractères de l'empreinte ne quitte le navigateur.
+
+### 6 août 2026 — Durcissement technique (migration 012 + en-têtes HTTP)
+
+Correction de trois des quatre écarts relevés par l'audit d'architecture.
+
+- **Fonctions internes retirées de l'API publique.**
+  `check_appointment_capacity()` et `rls_auto_enable()`, toutes deux en
+  `security definer`, étaient appelables par n'importe quel visiteur via
+  `/rest/v1/rpc/…`. Révocation sur `public` (et non sur `anon`/`authenticated`
+  seuls, qui n'aurait rien retiré). Le trigger de capacité reste actif :
+  vérifié par un test de surréservation.
+- **En-têtes de sécurité HTTP** déclarés dans
+  [next.config.js](../next.config.js) : CSP, `X-Frame-Options`,
+  `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` et HSTS
+  explicite. CSP vérifiée dans un navigateur sur six pages — aucune violation.
+- **Limites serveur sur les buckets** : `member-documents` plafonné à 4 Mo et
+  restreint aux PDF, JPEG, PNG et WEBP ; `fiscal-receipts` à 10 Mo et PDF
+  uniquement. La validation applicative reste la première barrière, mais elle
+  n'est plus la seule.
+
+Reste hors dépôt : `CRON_SECRET` dans Vercel et la protection contre les mots de
+passe compromis dans Supabase.
+
+### 6 août 2026 — Audit de l'architecture Supabase + Vercel
+
+Confrontation du projet aux mesures préconisées pour l'hébergement de données
+sensibles européennes sur Supabase et Vercel. Résultat détaillé en section 8.
+
+Le socle est conforme sur l'essentiel — région UE, RLS sur les 9 tables,
+service_role jamais exposé, MFA staff, TLS, buckets privés, droits des personnes
+outillés. Quatre manques structurels demeurent : **DPA non signés**,
+**sauvegardes jamais testées** (plan gratuit, sans PITR), **aucun chiffrement
+applicatif** sur les documents relevant de l'art. 9, et **registre non
+formalisé**. Quatre écarts techniques ont par ailleurs été découverts :
+protection contre les mots de passe compromis désactivée, deux fonctions
+`SECURITY DEFINER` exposées via l'API REST, en-têtes de sécurité HTTP absents,
+et buckets sans limite serveur.
+
+Rappel : la purge automatique reste **inactive** faute de `CRON_SECRET` dans
+Vercel, alors que la politique de confidentialité publiée en promet l'exécution
+chaque nuit.
 
 ### 6 août 2026 — Migrations 008, 009 et 010 : jamais appliquées
 
