@@ -1,6 +1,14 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ChevronRight, FileText } from 'lucide-react'
+import {
+  ASSOCIATION_SIREN,
+  ASSOCIATION_SIRET,
+  ASSOCIATION_APE,
+  ASSOCIATION_APE_LABEL,
+  ASSOCIATION_ADDRESS,
+  ASSOCIATION_PRESIDENT,
+} from '@/lib/association'
 
 export const metadata: Metadata = {
   title: 'Mentions Légales',
@@ -30,15 +38,17 @@ export default function MentionsLegalesPage() {
           <section className="space-y-3">
             <h2 className="font-bold text-warm-900 text-lg">1. Éditeur du site</h2>
             <p className="text-warm-600 text-sm leading-relaxed">
-              Le présent site internet est édité par l&apos;<strong>Association Afrique de l&apos;Est et ses amis</strong>, 
-              association déclarée régie par la loi du 1er juillet 1901 et le décret du 16 août 1901.
+              Le présent site internet est édité par l&apos;<strong>Association Afrique de l&apos;Est et ses amis</strong>,
+              association de droit local régie par les articles 21 à 79-IV du Code civil local,
+              applicable dans les départements du Bas-Rhin, du Haut-Rhin et de la Moselle.
             </p>
             <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1">
-              <li><strong>RNA (Répertoire National des Associations) :</strong> {process.env.NEXT_PUBLIC_RNA || 'WXXXXXXXXXX'}</li>
-              <li><strong>SIRET :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_SIRET || 'XXX XXX XXX XXXXX'}</li>
-              <li><strong>Siège social :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '1 rue de Graffenstaden, 67380 Lingolsheim'}</li>
+              <li><strong>SIREN :</strong> {ASSOCIATION_SIREN}</li>
+              <li><strong>SIRET (siège) :</strong> {ASSOCIATION_SIRET}</li>
+              <li><strong>Code APE :</strong> {ASSOCIATION_APE} — {ASSOCIATION_APE_LABEL}</li>
+              <li><strong>Siège social :</strong> {ASSOCIATION_ADDRESS}</li>
               <li><strong>Email :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr'}</li>
-              <li><strong>Directeur de la publication :</strong> Ismael Ali Moussa, en sa qualité de Président de l&apos;association.</li>
+              <li><strong>Directeur de la publication :</strong> {ASSOCIATION_PRESIDENT}, en sa qualité de Président de l&apos;association.</li>
             </ul>
           </section>
 

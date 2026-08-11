@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { escapeHtml } from '@/lib/utils'
+import { ASSOCIATION_ADDRESS, ASSOCIATION_LEGAL_FORM_SHORT } from '@/lib/association'
 
 export const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -52,7 +53,7 @@ export async function sendWelcomeEmail(params: {
             </a>
           </div>
           <p style="text-align:center;color:#999;font-size:12px;margin-top:16px;">
-            Association loi 1901 — ${process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS}<br>
+            ${ASSOCIATION_LEGAL_FORM_SHORT} — ${ASSOCIATION_ADDRESS}<br>
             <a href="${process.env.NEXT_PUBLIC_APP_URL}/legal/confidentialite" style="color:#E8702A;">Politique de confidentialité</a>
           </p>
         </div>

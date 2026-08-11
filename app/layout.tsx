@@ -27,10 +27,10 @@ export const metadata: Metadata = {
     template: "%s | Association Afrique de l'Est et ses amis",
   },
   description:
-    "Association loi 1901 qui accompagne les familles d'Afrique de l'Est dans leur intégration en France : cours de français (FLE), aide à la jeunesse, emploi et traduction.",
+    "Association de droit local qui accompagne les familles d'Afrique de l'Est dans leur intégration en France : cours de français (FLE), aide à la jeunesse, emploi et traduction.",
   keywords: [
     'association', 'afrique de l\'est', 'intégration', 'france', 'familles',
-    'cours de français', 'FLE', 'emploi', 'jeunesse', 'traduction', 'loi 1901',
+    'cours de français', 'FLE', 'emploi', 'jeunesse', 'traduction', 'association droit local', 'Alsace',
   ],
   authors: [{ name: "Association Afrique de l'Est et ses amis" }],
   creator: "Association Afrique de l'Est et ses amis",

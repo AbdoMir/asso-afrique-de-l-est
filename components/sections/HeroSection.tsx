@@ -50,7 +50,7 @@ export function HeroSection() {
             >
               <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold mb-6">
                 <MapPin className="w-4 h-4" />
-                Association loi 1901 — France
+                Association de droit local — Alsace
               </span>
             </motion.div>
 

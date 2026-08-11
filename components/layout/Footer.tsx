@@ -4,6 +4,11 @@ import {
   Globe, Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube,
   ArrowRight, Shield, FileText
 } from 'lucide-react'
+import {
+  ASSOCIATION_ADDRESS,
+  ASSOCIATION_LEGAL_FORM_SHORT,
+  ASSOCIATION_SIRET,
+} from '@/lib/association'
 
 const footerLinks = {
   association: [
@@ -88,7 +93,7 @@ export function Footer() {
             </Link>
 
             <p className="text-warm-400 text-sm leading-relaxed mb-6">
-              Association loi 1901 accompagnant les familles d&apos;Afrique de l&apos;Est
+              Association de droit local accompagnant les familles d&apos;Afrique de l&apos;Est
               dans leur intégration en France depuis 2025.
             </p>
 
@@ -126,7 +131,7 @@ export function Footer() {
               </a>
               <div className="flex items-start gap-2 text-sm text-warm-400">
                 <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || '1 rue de Graffenstaden, 67380 Lingolsheim'}</span>
+                <span>{ASSOCIATION_ADDRESS}</span>
               </div>
             </div>
           </div>
@@ -218,8 +223,8 @@ export function Footer() {
       <div className="border-t border-warm-800">
         <div className="container-custom py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
           <p className="text-warm-500 text-sm text-center sm:text-left">
-            © {currentYear} Association Afrique de l&apos;Est et ses amis — 
-            Association loi 1901 • RNA : {process.env.NEXT_PUBLIC_RNA || 'WXXXXXXXXXX'}
+            © {currentYear} Association Afrique de l&apos;Est et ses amis —
+            {' '}{ASSOCIATION_LEGAL_FORM_SHORT} • SIRET : {ASSOCIATION_SIRET}
           </p>
           <p className="text-warm-600 text-xs">
             Fait en France • Données hébergées en Europe

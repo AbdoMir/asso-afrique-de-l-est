@@ -61,7 +61,7 @@ Légende : ✅ fait · 🚧 en cours · ❌ à faire · ⬜ non applicable
 | 8 | Sous-traitants listés + DPA signés + TIA | 🚧 | section 4 — DPA à récupérer |
 | 9 | Encadrement des documents adhérents (art. 9) | 🚧 | durée + purge faites ; consentement explicite à ajouter |
 | 10 | Politique couvrant destinataires, transferts, droits complets | ✅ | politique réécrite le 6 août 2026 |
-| 11 | Mentions légales complètes (RNA, SIRET, adresse) | ❌ | placeholders à remplir en production |
+| 11 | Mentions légales complètes (SIRET, adresse, régime juridique) | ✅ | [lib/association.ts](../lib/association.ts) — données SIRENE du 10 août 2026 |
 | 12 | Journalisation des accès administrateurs | ❌ | aucune table d'audit |
 | 13 | Référent RGPD désigné + procédure de violation (72 h) | ❌ | à faire hors code |
 | 14 | Analyse de risque écrite (AIPD non requise mais à justifier) | ❌ | à faire hors code |
@@ -86,7 +86,7 @@ Légende : ✅ fait · 🚧 en cours · ❌ à faire · ⬜ non applicable
 | Limites serveur sur les buckets (taille, types MIME) | ✅ | migration 012 — 4 Mo et 4 types sur `member-documents` |
 | Protection contre les mots de passe compromis | ✅ *par compensation* | fonction native réservée au plan Pro Supabase — réimplémentée dans [lib/password-policy.ts](../lib/password-policy.ts) |
 | Politique de mot de passe (longueur, composition) | ✅ | 12 caractères, lettre + chiffre — code et tableau de bord Supabase |
-| Sauvegardes vérifiées et restauration testée | ❌ | jamais testé ; plan gratuit, pas de PITR — voir section 8 |
+| Sauvegardes | 🚧 | export vérifié via [scripts/sauvegarde.mjs](../scripts/sauvegarde.mjs) ; restauration pas encore testée — voir [docs/SAUVEGARDES.md](SAUVEGARDES.md) |
 | Chiffrement applicatif des documents art. 9 | ❌ | absent — voir section 8 |
 
 ---
@@ -184,10 +184,11 @@ document de l'association.
    CNIL, le faire valider et signer par le président.
 2. **Récupérer et archiver les DPA** des cinq sous-traitants (section 4).
 3. **Rédiger les TIA** pour les sous-traitants américains.
-4. **Remplir RNA et SIRET** dans les variables d'environnement de production
-   (`NEXT_PUBLIC_RNA`, `NEXT_PUBLIC_ASSOCIATION_SIRET`) et **trancher l'adresse
-   du siège** : `.env.example` indique Strasbourg, le code retombe sur
-   Lingolsheim.
+4. ~~Remplir RNA et SIRET~~ — ✅ fait le 10 août 2026. L'identité légale est
+   désormais figée dans [lib/association.ts](../lib/association.ts) à partir de
+   l'avis SIRENE, et ne dépend plus de variables d'environnement. **Reste à
+   obtenir** le volume et le folio d'inscription au registre des associations du
+   tribunal judiciaire, à ajouter aux mentions légales.
 5. **Désigner un référent RGPD** et écrire la procédure de violation de données
    (notification CNIL sous 72 h).
 6. **Écrire l'analyse de risque** justifiant qu'une AIPD n'est pas requise — un
@@ -198,9 +199,16 @@ document de l'association.
    recueil du consentement parental.
 9. **Journalisation des accès admin** : table d'audit recensant qui consulte
    quel message ou quel rendez-vous.
-10. **Tester une restauration de sauvegarde** et décider si le plan gratuit
-    Supabase suffit — 7 jours de rétention, aucune restauration à un instant T,
-    et mise en veille du projet après une semaine d'inactivité (art. 32).
+10. **Tester une restauration de bout en bout** sur un projet Supabase jetable,
+    et décider s'il faut passer au plan Pro. L'export est en place et vérifié ;
+    la restauration reste théorique tant qu'elle n'a pas été jouée une fois. Voir
+    [docs/SAUVEGARDES.md](SAUVEGARDES.md).
+12. **Statuts de l'association** : la page [/legal/statuts](../app/legal/statuts/page.tsx)
+    reproduit un texte se disant régi par la loi de 1901, alors que le
+    répertoire SIRENE classe l'association en droit local (catégorie 9260). Il
+    ne s'agit pas d'une faute du site mais d'une incohérence des statuts
+    eux-mêmes, à faire trancher — je n'y ai pas touché, ce document appartient à
+    l'association.
 11. **Chiffrement applicatif** des documents adhérents relevant de l'art. 9, ou
     décision motivée de s'en remettre au chiffrement au repos de Supabase.
 
@@ -265,7 +273,7 @@ base de production et code — et non au dépôt seul.
 | Mesure préconisée | État | Détail |
 |---|---|---|
 | **Signer les DPA Supabase et Vercel** | ❌ | Aucun DPA récupéré ni archivé. L'article le qualifie d'« indispensable ». Concerne aussi Resend, Upstash et HelloAsso. |
-| **Vérifier les sauvegardes et tester la restauration** | ❌ | Jamais testé. Le projet s'est mis en veille pendant cet audit : c'est la signature du plan gratuit, qui n'offre que des sauvegardes quotidiennes conservées 7 jours et **aucune restauration à un instant T (PITR)**. L'art. 32 exige de pouvoir rétablir la disponibilité des données. |
+| **Vérifier les sauvegardes et tester la restauration** | 🚧 | Traité le 10 août 2026. ⚠️ **Correction d'une erreur de cet audit** : j'avais écrit que le plan gratuit offrait 7 jours de sauvegardes quotidiennes. C'est faux — ces 7 jours commencent au plan **Pro**. Le plan gratuit n'offre **aucune sauvegarde automatique**. Un dispositif propre a été mis en place, voir [docs/SAUVEGARDES.md](SAUVEGARDES.md). |
 | **Chiffrement applicatif des données très sensibles** | ❌ | Aucun. Or les documents déposés par les adhérents (titres de séjour, pièces administratives) relèvent potentiellement de l'art. 9. Ils reposent uniquement sur le chiffrement au repos de Supabase et sur le cloisonnement RLS. |
 | **Registre des traitements** | 🚧 | Ébauche en section 3, pas de registre formel signé. |
 | Fournisseurs d'identité OAuth | ⬜ | Non applicable : authentification par email et mot de passe uniquement. Ce n'est pas une obligation. |
@@ -372,6 +380,39 @@ appliquée en production le 6 août 2026.
 
 **À faire avant le prochain déploiement** : définir `CRON_SECRET` dans les
 variables d'environnement Vercel.
+
+### 10 août 2026 — Sauvegardes et identité légale
+
+**Sauvegardes.** Correction d'une erreur des audits précédents : le plan gratuit
+Supabase ne fournit **aucune** sauvegarde automatique — les 7 jours de
+rétention commencent au plan Pro. L'association n'avait donc, jusqu'ici, aucune
+sauvegarde, alors qu'elle est tenue de conserver les reçus fiscaux 6 ans.
+
+Un dispositif propre a été mis en place ([scripts/sauvegarde.mjs](../scripts/sauvegarde.mjs),
+[docs/SAUVEGARDES.md](SAUVEGARDES.md)) : export JSON de toutes les tables,
+téléchargement des fichiers des deux buckets, liste des comptes, et un manifeste
+de décomptes qui rend une restauration vérifiable. Exécuté et vérifié le
+10 août : décomptes identiques à la base, et les deux PDF récupérés sont
+intègres. Le dossier produit est exclu de git — il contient des données
+personnelles.
+
+Limite assumée : les empreintes de mots de passe ne sont pas exportables via
+l'API d'administration. Après restauration, les adhérents devront passer par
+« mot de passe oublié ». La **restauration complète n'a pas encore été jouée**,
+faute de projet de test.
+
+**Identité légale.** L'avis SIRENE a révélé une erreur de fond : l'association
+est classée en **catégorie juridique 9260 — association de droit local
+(Bas-Rhin, Haut-Rhin, Moselle)**, et non « loi 1901 » comme l'affirmait le site
+à quatorze endroits. Les associations d'Alsace-Moselle relèvent des articles 21
+à 79-IV du Code civil local et s'inscrivent au tribunal judiciaire : elles n'ont
+donc **pas de numéro RNA**, ce qui explique pourquoi ce champ restait vide.
+
+SIREN, SIRET, code APE et adresse sont désormais figés dans
+[lib/association.ts](../lib/association.ts) plutôt que lus depuis des variables
+d'environnement — c'est ce détour qui affichait `WXXXXXXXXXX` en production et
+faisait diverger l'adresse entre les environnements. Ces données sont publiques :
+les traiter comme des secrets n'apportait rien et cachait leur absence.
 
 ### 6 août 2026 — Purge activée et politique de mot de passe
 

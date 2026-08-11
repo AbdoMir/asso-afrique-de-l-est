@@ -10,7 +10,7 @@ import { DonationCTASection } from '@/components/sections/DonationCTASection'
 export const metadata: Metadata = {
   title: "Association Afrique de l'Est et ses amis — Intégration en France",
   description:
-    "Association loi 1901 accompagnant les familles d'Afrique de l'Est dans leur intégration en France. Cours de français (FLE), aide à la jeunesse, emploi, traduction.",
+    "Association de droit local accompagnant les familles d'Afrique de l'Est dans leur intégration en France. Cours de français (FLE), aide à la jeunesse, emploi, traduction.",
 }
 
 export default function HomePage() {

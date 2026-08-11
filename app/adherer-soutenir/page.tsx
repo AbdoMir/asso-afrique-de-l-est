@@ -188,7 +188,7 @@ export default function AdhererSoutenirPage() {
                   <div className="text-6xl md:text-7xl font-black font-display mb-3">66%</div>
                   <h2 className="text-2xl font-bold mb-3">de déduction fiscale</h2>
                   <p className="text-white/85 leading-relaxed">
-                    En tant qu&apos;association loi 1901 reconnue d&apos;intérêt général,
+                    En tant qu&apos;association d&apos;intérêt général,
                     vos dons ouvrent droit à une réduction d&apos;impôt de 66% du montant versé,
                     dans la limite de 20% de votre revenu imposable (article 200 du CGI).
                   </p>

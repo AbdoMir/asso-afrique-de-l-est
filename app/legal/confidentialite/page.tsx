@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { ChevronRight, ShieldCheck } from 'lucide-react'
+import { ASSOCIATION_LEGAL_FORM, ASSOCIATION_SIRET } from '@/lib/association'
 
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité',
@@ -58,9 +59,9 @@ export default function ConfidentialitePage() {
             <h2 className="font-bold text-warm-900 text-lg">1. Qui traite vos données</h2>
             <p className="text-warm-600 text-sm leading-relaxed">
               Le responsable de traitement est l&apos;<strong>Association Afrique de l&apos;Est
-              et ses amis</strong>, association déclarée régie par la loi du 1<sup>er</sup> juillet 1901,
-              représentée par son président. Pour toute question relative à vos données
-              personnelles, écrivez-nous à <strong>{CONTACT_EMAIL}</strong>.
+              et ses amis</strong>, {ASSOCIATION_LEGAL_FORM}, immatriculée sous le
+              SIRET {ASSOCIATION_SIRET} et représentée par son président. Pour toute question
+              relative à vos données personnelles, écrivez-nous à <strong>{CONTACT_EMAIL}</strong>.
             </p>
           </section>
 

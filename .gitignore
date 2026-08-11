@@ -32,3 +32,6 @@ yarn-error.log*
 next-env.d.ts
 .env*
 print/
+
+# sauvegardes (donnees personnelles — ne jamais committer)
+sauvegardes/

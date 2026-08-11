@@ -78,7 +78,7 @@ export default function PartenairesPage() {
               <h2 className="section-title">Une gouvernance transparente</h2>
               <p className="text-warm-600 leading-relaxed">
                 L&apos;Association Afrique de l&apos;Est et ses amis est une structure à but non lucratif gérée selon les principes 
-                de la loi 1901. Notre gouvernance est collégiale, démocratique et transparente.
+                du droit local alsacien-mosellan. Notre gouvernance est collégiale, démocratique et transparente.
               </p>
               
               <div className="space-y-4">

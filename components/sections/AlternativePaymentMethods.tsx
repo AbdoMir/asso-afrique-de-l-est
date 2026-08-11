@@ -1,10 +1,10 @@
 import { Banknote, Landmark, MapPin } from 'lucide-react'
+import { ASSOCIATION_ADDRESS, ASSOCIATION_NAME } from '@/lib/association'
 
-const bankHolder = process.env.NEXT_PUBLIC_BANK_HOLDER || "Association Afrique de l'Est et ses amis"
+const bankHolder = process.env.NEXT_PUBLIC_BANK_HOLDER || ASSOCIATION_NAME
 const bankIban = process.env.NEXT_PUBLIC_BANK_IBAN || 'FRXX XXXX XXXX XXXX XXXX XXXX XXX'
 const bankBic = process.env.NEXT_PUBLIC_BANK_BIC || 'XXXXXXXX'
-const associationAddress =
-  process.env.NEXT_PUBLIC_ASSOCIATION_ADDRESS || 'XX rue XXXXX, 75XXX Paris'
+const associationAddress = ASSOCIATION_ADDRESS
 
 export function AlternativePaymentMethods() {
   return (

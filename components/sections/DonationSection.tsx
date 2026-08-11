@@ -524,7 +524,7 @@ export function DonationSection() {
                             <a href="/legal/statuts" target="_blank" className="underline hover:text-primary-500">
                               Lire les statuts
                             </a>{' '}
-                            de l&apos;Association Afrique de l&apos;Est et ses amis (loi 1901)
+                            de l&apos;Association Afrique de l&apos;Est et ses amis
                           </p>
                         </div>
                       </label>
