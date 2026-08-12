@@ -93,6 +93,20 @@ export async function GET(request: NextRequest) {
 
     if (listError) return NextResponse.json({ error: listError.message }, { status: 500 })
 
+    // Journalisé au même titre que la recherche par email : les deux branches
+    // renvoient des données de l'art. 9, et un chemin de lecture qui ne laisse
+    // pas de trace vaut, pour un contrôle, comme s'il n'existait pas.
+    await logAccess({
+      actorId: user?.id,
+      actorEmail: user?.email,
+      actorRole: 'staff',
+      action: 'external_appointment.list',
+      resourceType: 'profiles',
+      resourceId: userId,
+      metadata: { nombre: appointments?.length ?? 0 },
+      request,
+    })
+
     return NextResponse.json({ appointments: appointments ?? [] })
   }
 
