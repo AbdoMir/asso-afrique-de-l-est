@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/Input'
 import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import type { AppointmentType, AppointmentSlot } from '@/types'
-import { APPOINTMENT_REASONS as REASONS } from '@/lib/rendez-vous'
+import { reasonsForType } from '@/lib/rendez-vous'
 
 const TYPES: { id: AppointmentType; label: string; description: string; icon: any }[] = [
   {
@@ -87,6 +87,7 @@ export default function RendezVousPage() {
   useEffect(() => {
     if (!selectedType) return
     setSelectedSlotId(null)
+    setReason('')
     setLoadingSlots(true)
     fetch(`/api/rendez-vous/slots?type=${selectedType}`)
       .then((res) => res.json())
@@ -150,6 +151,10 @@ export default function RendezVousPage() {
     setReason('')
   }
 
+  // Le motif depend du type de creneau : changer de type doit reproposer une
+  // liste coherente, et effacer un motif devenu sans objet.
+  const motifsDisponibles = reasonsForType(selectedType)
+
   const groupedSlots = slots.reduce<Record<string, SlotWithRemaining[]>>((acc, slot) => {
     const key = dateFmt.format(new Date(slot.start_at))
     acc[key] = acc[key] || []
@@ -193,7 +198,7 @@ export default function RendezVousPage() {
             <div className="lg:col-span-5 space-y-6">
               <h2 className="font-display font-black text-2xl text-warm-900">Types de rendez-vous</h2>
               <p className="text-warm-600 mb-8 leading-relaxed">
-                Choisissez le motif de votre demande, puis un créneau parmi ceux proposés.
+                Choisissez le type de rendez-vous, puis un créneau parmi ceux proposés.
               </p>
 
               <div className="space-y-4">
@@ -254,7 +259,7 @@ export default function RendezVousPage() {
                   >
                     {/* Step 1: type */}
                     <div>
-                      <h2 className="font-display font-black text-2xl text-warm-900 mb-4">1. Motif du rendez-vous</h2>
+                      <h2 className="font-display font-black text-2xl text-warm-900 mb-4">1. Type de rendez-vous</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {TYPES.map((t) => (
                           <button
@@ -364,26 +369,31 @@ export default function RendezVousPage() {
                           leftAddon={<Phone className="w-4 h-4" />}
                         />
 
-                        <div>
-                          <label htmlFor="motif" className="block text-sm font-medium text-warm-700 mb-1.5">
-                            Motif du rendez-vous (facultatif)
-                          </label>
-                          <select
-                            id="motif"
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                            className="w-full px-4 py-2.5 border border-warm-200 rounded-xl bg-white text-warm-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
-                          >
-                            <option value="">Je préfère en parler sur place</option>
-                            {REASONS.map((r) => (
-                              <option key={r.id} value={r.id}>{r.label}</option>
-                            ))}
-                          </select>
-                          <p className="text-xs text-warm-500 mt-1.5">
-                            Nous en parlerons plus en détail lors du rendez-vous — inutile
-                            d&apos;écrire ici votre situation personnelle.
-                          </p>
-                        </div>
+                        {/* Masqué quand le type choisi se suffit à lui-même :
+                            pour un cours de FLE, préciser le besoin serait
+                            reposer la même question. */}
+                        {motifsDisponibles.length > 0 && (
+                          <div>
+                            <label htmlFor="motif" className="block text-sm font-medium text-warm-700 mb-1.5">
+                              Précisez votre besoin (facultatif)
+                            </label>
+                            <select
+                              id="motif"
+                              value={reason}
+                              onChange={(e) => setReason(e.target.value)}
+                              className="w-full px-4 py-2.5 border border-warm-200 rounded-xl bg-white text-warm-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+                            >
+                              <option value="">Je préfère en parler sur place</option>
+                              {motifsDisponibles.map((r) => (
+                                <option key={r.id} value={r.id}>{r.label}</option>
+                              ))}
+                            </select>
+                            <p className="text-xs text-warm-500 mt-1.5">
+                              Nous en parlerons plus en détail lors du rendez-vous — inutile
+                              d&apos;écrire ici votre situation personnelle.
+                            </p>
+                          </div>
+                        )}
 
                         <Button
                           type="submit"
