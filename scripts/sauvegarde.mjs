@@ -3,14 +3,14 @@
  *
  * Pourquoi ce script existe : le plan gratuit Supabase ne fournit **aucune
  * sauvegarde automatique**. Sans lui, une migration ratée ou une suppression
- * accidentelle effacerait définitivement les adhérents, les reçus fiscaux — que
- * la loi impose de conserver 6 ans — et les documents déposés par les familles.
+ * accidentelle effacerait définitivement les adhérents, leurs rendez-vous et
+ * les reçus fiscaux, que la loi impose de conserver 6 ans.
  * L'art. 32 du RGPD demande de pouvoir rétablir la disponibilité des données ;
  * c'est cette obligation que ce script honore.
  *
  * Ce qu'il sauvegarde :
  *   - toutes les tables applicatives, en JSON ;
- *   - les fichiers des deux buckets de stockage ;
+ *   - les fichiers du bucket des reçus fiscaux ;
  *   - la liste des comptes (sans les mots de passe, voir la limite ci-dessous).
  *
  * Ce qu'il ne sauvegarde pas :
@@ -50,14 +50,14 @@ const TABLES = [
   'memberships',
   'donations',
   'fiscal_receipts',
-  'member_documents',
   'appointment_slots',
   'appointment_bookings',
+  'external_appointments',
   'contact_messages',
   'newsletter_subscribers',
 ]
 
-const BUCKETS = ['member-documents', 'fiscal-receipts']
+const BUCKETS = ['fiscal-receipts']
 
 async function sauvegarderTables(supabase, dossier) {
   const compteurs = {}

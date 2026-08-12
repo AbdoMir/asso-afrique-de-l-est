@@ -11,7 +11,16 @@ const bookingSchema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email().max(254),
   phone: z.string().max(20).optional(),
-  notes: z.string().max(500).optional(),
+  // Liste fermée : le champ « Précisions » en texte libre a été retiré. C'est
+  // là que les personnes décrivaient spontanément leur situation médicale ou
+  // administrative, alors que l'association n'a pas à en être dépositaire.
+  reason: z.enum([
+    'aide_administrative',
+    'cours_francais',
+    'emploi',
+    'traduction',
+    'autre',
+  ]).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -33,7 +42,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { slotId, type, name, email, phone, notes } = validated.data
+    const { slotId, type, name, email, phone, reason } = validated.data
 
     const sessionSupabase = await createClient()
     const { data: { user } } = await sessionSupabase.auth.getUser()
@@ -76,7 +85,7 @@ export async function POST(request: NextRequest) {
       guest_name: user ? undefined : name,
       guest_email: user ? undefined : email,
       guest_phone: user ? undefined : phone,
-      notes,
+      reason,
     })
 
     if (insertError) {

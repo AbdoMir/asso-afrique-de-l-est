@@ -25,7 +25,8 @@ interface PurgeReport {
   messages_contact: number
   creneaux_rendez_vous: number
   inscriptions_non_confirmees: number
-  documents_adherents: number
+  journal_acces: number
+  rendez_vous_exterieurs: number
 }
 
 export async function GET(request: NextRequest) {
@@ -47,7 +48,8 @@ export async function GET(request: NextRequest) {
     messages_contact: 0,
     creneaux_rendez_vous: 0,
     inscriptions_non_confirmees: 0,
-    documents_adherents: 0,
+    journal_acces: 0,
+    rendez_vous_exterieurs: 0,
   }
 
   try {
@@ -86,35 +88,29 @@ export async function GET(request: NextRequest) {
     if (pendingError) throw pendingError
     report.inscriptions_non_confirmees = pending?.length ?? 0
 
-    // ─── Documents adhérents ────────────────────────────────────────────────
-    // Les plus sensibles du lot. Les fichiers sont retirés du stockage avant
-    // les lignes : l'inverse laisserait des objets orphelins que plus rien ne
-    // référence, donc que plus rien ne viendrait supprimer.
-    const documentsCutoff = cutoffMonthsAgo(RETENTION_MONTHS.memberDocuments).toISOString()
+    // ─── Journal des accès ──────────────────────────────────────────────────
+    // Un journal conservé indéfiniment cesse d'être un outil de sécurité pour
+    // devenir un fichier de surveillance des bénévoles.
+    const { data: journal, error: journalError } = await supabase
+      .from('audit_log')
+      .delete()
+      .lt('created_at', cutoffMonthsAgo(RETENTION_MONTHS.auditLog).toISOString())
+      .select('id')
 
-    const { data: expiredDocuments, error: documentsSelectError } = await supabase
-      .from('member_documents')
-      .select('id, storage_path')
-      .lt('created_at', documentsCutoff)
+    if (journalError) throw journalError
+    report.journal_acces = journal?.length ?? 0
 
-    if (documentsSelectError) throw documentsSelectError
+    // ─── Rendez-vous extérieurs ─────────────────────────────────────────────
+    // Données de l'art. 9 : passé le délai, l'association n'a plus de raison de
+    // savoir que telle personne avait rendez-vous à l'hôpital tel jour.
+    const { data: exterieurs, error: exterieursError } = await supabase
+      .from('external_appointments')
+      .delete()
+      .lt('starts_at', cutoffMonthsAgo(RETENTION_MONTHS.externalAppointments).toISOString())
+      .select('id')
 
-    if (expiredDocuments && expiredDocuments.length > 0) {
-      const { error: storageError } = await supabase.storage
-        .from('member-documents')
-        .remove(expiredDocuments.map((doc) => doc.storage_path))
-
-      if (storageError) throw storageError
-
-      const { error: documentsDeleteError } = await supabase
-        .from('member_documents')
-        .delete()
-        .in('id', expiredDocuments.map((doc) => doc.id))
-
-      if (documentsDeleteError) throw documentsDeleteError
-
-      report.documents_adherents = expiredDocuments.length
-    }
+    if (exterieursError) throw exterieursError
+    report.rendez_vous_exterieurs = exterieurs?.length ?? 0
   } catch (error) {
     console.error('Purge error:', error)
     return NextResponse.json(

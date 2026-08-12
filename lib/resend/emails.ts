@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { escapeHtml } from '@/lib/utils'
 import { ASSOCIATION_ADDRESS, ASSOCIATION_LEGAL_FORM_SHORT } from '@/lib/association'
+import { APPOINTMENT_TYPE_LABELS, libelleCategorie } from '@/lib/rendez-vous'
 
 export const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -69,12 +70,6 @@ export async function sendWelcomeEmail(params: {
 
 // ─── Appointment Confirmation Email ─────────────────────────────────────────────
 
-const APPOINTMENT_TYPE_LABELS: Record<string, string> = {
-  administratif: 'Accompagnement administratif',
-  fle_atelier: 'Cours de FLE / Atelier',
-  autre: 'Rendez-vous général',
-}
-
 export async function sendAppointmentConfirmation(params: {
   to: string
   name: string
@@ -119,6 +114,93 @@ export async function sendAppointmentConfirmation(params: {
         </div>
       </body>
       </html>
+    `,
+  })
+}
+
+// ─── Rappels de rendez-vous (la veille) ─────────────────────────────────────
+
+const rappelDateFmt = new Intl.DateTimeFormat('fr-FR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/** Rappel d'un rendez-vous avec l'association. */
+export async function sendAppointmentReminder(params: {
+  to: string
+  name: string
+  type: string
+  startAt: string
+}) {
+  const typeLabel = APPOINTMENT_TYPE_LABELS[params.type] || params.type
+
+  return resend.emails.send({
+    from: FROM,
+    to: params.to,
+    reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
+    subject: `Rappel : votre rendez-vous demain`,
+    html: `
+      <p>Bonjour ${escapeHtml(params.name)},</p>
+      <p>Petit rappel : vous avez rendez-vous avec nous demain.</p>
+      <div style="background:#F5F0E8;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:0 0 4px;"><strong>${escapeHtml(typeLabel)}</strong></p>
+        <p style="margin:0;color:#4A4A4A;">${escapeHtml(rappelDateFmt.format(new Date(params.startAt)))}</p>
+      </div>
+      <p style="color:#666;font-size:14px;">
+        Si vous ne pouvez pas venir, prévenez-nous en répondant à cet email.
+      </p>
+    `,
+  })
+}
+
+/**
+ * Rappel d'un rendez-vous extérieur, enregistré par l'association.
+ *
+ * Ce message ne mentionne **jamais** la catégorie du rendez-vous : elle porte
+ * la sensibilité (santé, préfecture), et un email reste lisible sur un écran
+ * de téléphone posé sur une table. L'intitulé et la liste des pièces à
+ * apporter suffisent — c'est d'ailleurs tout ce dont la personne a besoin.
+ */
+export async function sendExternalAppointmentReminder(params: {
+  to: string
+  name: string
+  title: string
+  startAt: string
+  location?: string | null
+  preparation?: string | null
+}) {
+  const preparationBloc = params.preparation
+    ? `<div style="background:#FFF7ED;border:1px solid #FED7AA;padding:16px;border-radius:8px;margin:16px 0;">
+         <p style="margin:0 0 6px;font-weight:600;color:#9A3412;">À apporter</p>
+         <p style="margin:0;color:#7C2D12;white-space:pre-line;">${escapeHtml(params.preparation)}</p>
+       </div>`
+    : ''
+
+  return resend.emails.send({
+    from: FROM,
+    to: params.to,
+    reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
+    subject: `Rappel : ${params.title} demain`,
+    html: `
+      <p>Bonjour ${escapeHtml(params.name)},</p>
+      <p>Petit rappel de votre rendez-vous de demain :</p>
+      <div style="background:#F5F0E8;padding:16px;border-radius:8px;margin:16px 0;">
+        <p style="margin:0 0 4px;"><strong>${escapeHtml(params.title)}</strong></p>
+        <p style="margin:0;color:#4A4A4A;">${escapeHtml(rappelDateFmt.format(new Date(params.startAt)))}</p>
+        ${params.location ? `<p style="margin:4px 0 0;color:#4A4A4A;">${escapeHtml(params.location)}</p>` : ''}
+      </div>
+      ${preparationBloc}
+      <p style="color:#666;font-size:14px;">
+        Une question avant d'y aller ? Répondez à cet email, nous sommes là.
+      </p>
+      <p style="color:#999;font-size:12px;margin-top:24px;border-top:1px solid #eee;padding-top:16px;">
+        Vous recevez ce rappel parce que vous avez autorisé l'association à suivre
+        vos rendez-vous. Vous pouvez retirer cette autorisation à tout moment depuis
+        votre espace adhérent.
+      </p>
     `,
   })
 }

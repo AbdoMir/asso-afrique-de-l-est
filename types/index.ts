@@ -11,6 +11,9 @@ export type Profile = {
   zip_code?: string
   country?: string
   is_staff: boolean
+  /** Consentement explicite (art. 9.2.a) au suivi des rendez-vous extérieurs. */
+  external_appointments_consent: boolean
+  external_appointments_consent_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -92,16 +95,20 @@ export type FiscalReceipt = {
   created_at: string
 }
 
-// ─── Member Document ───────────────────────────────────────────────────────────
 
-export type MemberDocument = {
+
+// ─── Journal des accès ──────────────────────────────────────────────────────────
+
+export type AuditLog = {
   id: string
-  user_id: string
-  file_name: string
-  storage_path: string
-  mime_type: string
-  size_bytes: number
-  label?: string
+  actor_id: string | null
+  actor_email: string | null
+  actor_role: 'staff' | 'member' | 'system'
+  action: string
+  resource_type: string | null
+  resource_id: string | null
+  metadata: Record<string, unknown> | null
+  ip: string | null
   created_at: string
 }
 
@@ -119,6 +126,18 @@ export type AppointmentSlot = {
   created_at: string
 }
 
+/**
+ * Motif choisi dans une liste fermée. Le champ « Précisions » en texte libre a
+ * été retiré : c'est là que les personnes décrivaient spontanément leur
+ * situation médicale ou administrative.
+ */
+export type AppointmentReason =
+  | 'aide_administrative'
+  | 'cours_francais'
+  | 'emploi'
+  | 'traduction'
+  | 'autre'
+
 export type AppointmentBooking = {
   id: string
   slot_id: string
@@ -126,8 +145,41 @@ export type AppointmentBooking = {
   guest_name?: string
   guest_email?: string
   guest_phone?: string
-  notes?: string
+  reason?: AppointmentReason
   status: AppointmentBookingStatus
+  /** Date d'envoi du rappel de la veille. */
+  reminder_sent_at?: string
+  created_at: string
+}
+
+// ─── Rendez-vous extérieurs ─────────────────────────────────────────────────────
+
+/**
+ * Rendez-vous de l'adhérent hors association, saisis par le personnel pour
+ * l'aider à s'organiser. La catégorie suffit à qualifier une donnée de l'art. 9
+ * (`sante`, `prefecture`) : le titre doit rester neutre.
+ */
+export type ExternalAppointmentCategory =
+  | 'prefecture'
+  | 'sante'
+  | 'caf'
+  | 'france_travail'
+  | 'logement'
+  | 'ecole'
+  | 'justice'
+  | 'autre'
+
+export type ExternalAppointment = {
+  id: string
+  user_id: string
+  category: ExternalAppointmentCategory
+  title: string
+  starts_at: string
+  location?: string | null
+  /** Documents à apporter. Seul champ libre : ne jamais y consigner de détail médical. */
+  preparation?: string | null
+  created_by?: string | null
+  reminder_sent_at?: string | null
   created_at: string
 }
 
@@ -298,10 +350,16 @@ export interface Database {
         Update: Partial<Omit<FiscalReceipt, 'id' | 'created_at'>>
         Relationships: []
       }
-      member_documents: {
-        Row: MemberDocument
-        Insert: Omit<MemberDocument, 'id' | 'created_at'>
-        Update: Partial<Omit<MemberDocument, 'id' | 'user_id' | 'created_at'>>
+      external_appointments: {
+        Row: ExternalAppointment
+        Insert: Omit<ExternalAppointment, 'id' | 'created_at'>
+        Update: Partial<Omit<ExternalAppointment, 'id' | 'user_id' | 'created_at'>>
+        Relationships: []
+      }
+      audit_log: {
+        Row: AuditLog
+        Insert: Omit<AuditLog, 'id' | 'created_at'>
+        Update: Partial<Omit<AuditLog, 'id' | 'created_at'>>
         Relationships: []
       }
       newsletter_subscribers: {

@@ -28,12 +28,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
   }
 
-  const [profile, memberships, donations, receipts, documents, bookings] = await Promise.all([
+  const [profile, memberships, donations, receipts, bookings] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     supabase.from('memberships').select('*').eq('user_id', user.id),
     supabase.from('donations').select('*').eq('user_id', user.id),
     supabase.from('fiscal_receipts').select('*').eq('user_id', user.id),
-    supabase.from('member_documents').select('*').eq('user_id', user.id),
     supabase
       .from('appointment_bookings')
       .select('*, appointment_slots(type, start_at, end_at)')
@@ -57,7 +56,6 @@ export async function GET(request: NextRequest) {
       genere_le: new Date().toISOString(),
       responsable_de_traitement: "Association Afrique de l'Est et ses amis",
       base_legale: 'Articles 15 et 20 du RGPD',
-      note: "Les documents que vous avez déposés ne figurent pas dans ce fichier : ils restent téléchargeables un par un depuis l'onglet Documents de votre espace adhérent.",
     },
     compte: {
       id: user.id,
@@ -69,7 +67,6 @@ export async function GET(request: NextRequest) {
     adhesions: memberships.data ?? [],
     dons: donations.data ?? [],
     recus_fiscaux: receipts.data ?? [],
-    documents: documents.data ?? [],
     rendez_vous: bookings.data ?? [],
     newsletter,
   }

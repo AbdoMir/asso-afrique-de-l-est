@@ -15,8 +15,19 @@ export const RETENTION_MONTHS = {
   contactMessages: 12,
   /** Créneaux de rendez-vous — 12 mois après le créneau (cascade sur les réservations). */
   appointmentSlots: 12,
-  /** Documents déposés par les adhérents — 24 mois après le dépôt. */
-  memberDocuments: 24,
+  /**
+   * Journal des accès — 12 mois. La CNIL recommande de conserver les journaux
+   * entre 6 mois et 1 an : assez pour enquêter sur un incident, pas au point
+   * de constituer un fichier de surveillance des bénévoles.
+   */
+  auditLog: 12,
+  /**
+   * Rendez-vous extérieurs — 3 mois après la date du rendez-vous. Assez pour
+   * suivre une démarche en cours, trop court pour constituer l'historique
+   * médical et administratif d'une personne. Ce sont des données de l'art. 9 :
+   * la durée la plus courte utile est ici la bonne.
+   */
+  externalAppointments: 3,
 } as const
 
 export const RETENTION_DAYS = {

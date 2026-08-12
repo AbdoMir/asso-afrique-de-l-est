@@ -7,18 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, CreditCard, FileText, Settings, LogOut, Heart,
   AlertTriangle, ShieldCheck, CheckCircle2, Download, Calendar, Mail, Phone, MapPin,
-  Paperclip, Trash2, Upload, Clock, X, KeyRound
+  Trash2, Clock, X, KeyRound
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
 import { formatCurrency, formatDate } from '@/lib/utils'
-
-const APPOINTMENT_TYPE_LABELS: Record<string, string> = {
-  administratif: 'Accompagnement administratif',
-  fle_atelier: 'Cours de FLE / Atelier',
-  autre: 'Rendez-vous général',
-}
+import { APPOINTMENT_TYPE_LABELS, libelleCategorie } from '@/lib/rendez-vous'
 
 const appointmentDateTimeFmt = new Intl.DateTimeFormat('fr-FR', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -26,22 +21,19 @@ const appointmentDateTimeFmt = new Intl.DateTimeFormat('fr-FR', {
 
 export default function MemberDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'documents' | 'rdv' | 'profile'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'rdv' | 'profile'>('overview')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [donations, setDonations] = useState<any[]>([])
   const [membership, setMembership] = useState<any>(null)
-  const [documents, setDocuments] = useState<any[]>([])
   const [appointments, setAppointments] = useState<any[]>([])
+  const [externalAppointments, setExternalAppointments] = useState<any[]>([])
+  const [rdvConsent, setRdvConsent] = useState(false)
+  const [rdvConsentAt, setRdvConsentAt] = useState<string | null>(null)
+  const [savingConsent, setSavingConsent] = useState(false)
   const [isMock, setIsMock] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
-
-  // Document upload state
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [uploadLabel, setUploadLabel] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   // Profile Form States
   const [firstName, setFirstName] = useState('')
@@ -158,6 +150,8 @@ export default function MemberDashboard() {
           setAddress(profData.address || '')
           setCity(profData.city || '')
           setZipCode(profData.zip_code || '')
+          setRdvConsent(profData.external_appointments_consent || false)
+          setRdvConsentAt(profData.external_appointments_consent_at || null)
         }
 
         // Active Membership
@@ -187,16 +181,14 @@ export default function MemberDashboard() {
         // Les reçus fiscaux CERFA sont édités et envoyés par HelloAsso :
         // rien à charger ici, l'onglet renvoie vers le compte HelloAsso.
 
-        // Documents
-        const { data: docData } = await supabase
-          .from('member_documents')
+        // Rendez-vous extérieurs saisis par l'association. La policy RLS
+        // restreint déjà la lecture à ceux de la personne connectée.
+        const { data: externesData } = await supabase
+          .from('external_appointments')
           .select('*')
-          .eq('user_id', sbUser.id)
-          .order('created_at', { ascending: false })
+          .order('starts_at', { ascending: true })
 
-        if (docData) {
-          setDocuments(docData)
-        }
+        if (externesData) setExternalAppointments(externesData)
 
         // Appointments (RDV)
         const { data: bookingData } = await supabase
@@ -301,6 +293,73 @@ export default function MemberDashboard() {
       })
     } finally {
       setUpdatingProfile(false)
+    }
+  }
+
+  /**
+   * Consentement au suivi des rendez-vous extérieurs (art. 9.2.a).
+   *
+   * Le retrait ne supprime pas les rendez-vous déjà enregistrés : l'adhérent
+   * les attend peut-être. Il bloque toute nouvelle saisie, et chaque entrée
+   * reste supprimable une par une.
+   */
+  const handleToggleRdvConsent = async (consent: boolean) => {
+    if (isMock) {
+      toast({
+        title: 'Mode Démo',
+        description: "Le consentement n'est pas modifiable en mode démo.",
+      })
+      return
+    }
+
+    setSavingConsent(true)
+    try {
+      const response = await fetch('/api/compte/consentement-rendez-vous', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ consent }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Enregistrement impossible.')
+
+      setRdvConsent(consent)
+      setRdvConsentAt(consent ? new Date().toISOString() : null)
+
+      toast({
+        title: consent ? 'Suivi activé' : 'Suivi désactivé',
+        description: consent
+          ? "L'association pourra enregistrer vos rendez-vous extérieurs."
+          : 'Aucun nouveau rendez-vous ne sera enregistré.',
+        variant: 'success',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible de modifier ce réglage.',
+        variant: 'error',
+      })
+    } finally {
+      setSavingConsent(false)
+    }
+  }
+
+  const handleDeleteExternalAppointment = async (id: string) => {
+    if (!window.confirm('Supprimer ce rendez-vous de votre tableau de bord ?')) return
+
+    try {
+      const response = await fetch(`/api/compte/rendez-vous-exterieurs/${id}`, { method: 'DELETE' })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Suppression impossible.')
+
+      setExternalAppointments((prev) => prev.filter((a) => a.id !== id))
+      toast({ title: 'Rendez-vous supprimé', variant: 'success' })
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible de supprimer ce rendez-vous.',
+        variant: 'error',
+      })
     }
   }
 
@@ -430,53 +489,6 @@ export default function MemberDashboard() {
     window.open('https://www.helloasso.com/mon-compte/adhesions-et-dons', '_blank', 'noopener,noreferrer')
   }
 
-  const handleUploadDocument = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!uploadFile) return
-
-    if (isMock) {
-      toast({
-        title: 'Mode Démo',
-        description: "L'envoi de documents n'est pas disponible en mode démo.",
-      })
-      return
-    }
-
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', uploadFile)
-      if (uploadLabel.trim()) formData.append('label', uploadLabel.trim())
-
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
-      })
-      const result = await response.json()
-
-      if (!response.ok) throw new Error(result.error || "Erreur lors de l'envoi du document.")
-
-      setDocuments((prev) => [result.document, ...prev])
-      setUploadFile(null)
-      setUploadLabel('')
-      if (fileInputRef.current) fileInputRef.current.value = ''
-
-      toast({
-        title: 'Document envoyé',
-        description: 'Votre document a bien été ajouté.',
-        variant: 'success',
-      })
-    } catch (err: any) {
-      toast({
-        title: 'Erreur',
-        description: err.message || "Impossible d'envoyer le document.",
-        variant: 'error',
-      })
-    } finally {
-      setUploading(false)
-    }
-  }
-
   const handleCancelAppointment = async (appointmentId: string) => {
     const confirmCancel = window.confirm('Annuler ce rendez-vous ?')
     if (!confirmCancel) return
@@ -503,51 +515,6 @@ export default function MemberDashboard() {
       toast({
         title: 'Erreur',
         description: err.message || 'Impossible d\'annuler ce rendez-vous.',
-        variant: 'error',
-      })
-    }
-  }
-
-  const handleDownloadDocument = async (doc: any) => {
-    // Les cas sans client (démo, indisponible) sont traités en amont.
-    if (!supabase) return
-
-    try {
-      const { data, error } = await supabase.storage
-        .from('member-documents')
-        .createSignedUrl(doc.storage_path, 60)
-
-      if (error || !data) throw error || new Error('Lien indisponible')
-
-      window.open(data.signedUrl, '_blank')
-    } catch (err: any) {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de générer le lien de téléchargement.',
-        variant: 'error',
-      })
-    }
-  }
-
-  const handleDeleteDocument = async (docId: string) => {
-    const confirmDelete = window.confirm('Supprimer définitivement ce document ?')
-    if (!confirmDelete) return
-
-    try {
-      const response = await fetch(`/api/documents/${docId}`, { method: 'DELETE' })
-      const result = await response.json()
-
-      if (!response.ok) throw new Error(result.error || 'Erreur lors de la suppression.')
-
-      setDocuments((prev) => prev.filter((d) => d.id !== docId))
-      toast({
-        title: 'Document supprimé',
-        variant: 'success',
-      })
-    } catch (err: any) {
-      toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible de supprimer le document.',
         variant: 'error',
       })
     }
@@ -605,7 +572,6 @@ export default function MemberDashboard() {
                     { id: 'overview', label: 'Tableau de bord', icon: User },
                     { id: 'donations', label: 'Dons & Adhésions', icon: CreditCard },
                     { id: 'receipts', label: 'Reçus fiscaux', icon: FileText },
-                    { id: 'documents', label: 'Mes Documents', icon: Paperclip },
                     { id: 'rdv', label: 'Mes RDV', icon: Calendar },
                     { id: 'profile', label: 'Mon Profil', icon: Settings },
                   ]
@@ -897,102 +863,6 @@ export default function MemberDashboard() {
                 </motion.div>
               )}
 
-              {/* Tab 4: Documents */}
-              {activeTab === 'documents' && (
-                <motion.div
-                  key="documents"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="font-display font-black text-2xl text-warm-900">Mes Documents</h3>
-                    <p className="text-warm-500 text-sm">
-                      Conservez ici vos documents administratifs (formulaires, justificatifs...).
-                      Hors documents médicaux.
-                    </p>
-                  </div>
-
-                  {/* Upload form */}
-                  <form
-                    onSubmit={handleUploadDocument}
-                    className="p-5 rounded-2xl border border-dashed border-warm-200 bg-warm-50/50 space-y-4"
-                  >
-                    <Input
-                      id="document-file-input"
-                      ref={fileInputRef}
-                      type="file"
-                      label="Choisir un fichier"
-                      accept=".pdf,.jpg,.jpeg,.png,.webp"
-                      hint="PDF, JPEG, PNG ou WEBP — 4 Mo maximum"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    />
-                    <Input
-                      type="text"
-                      label="Description (facultatif)"
-                      placeholder="Ex : Formulaire CAF"
-                      value={uploadLabel}
-                      onChange={(e) => setUploadLabel(e.target.value)}
-                    />
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="sm"
-                      leftIcon={<Upload className="w-4 h-4" />}
-                      isLoading={uploading}
-                      disabled={!uploadFile}
-                    >
-                      Envoyer le document
-                    </Button>
-                  </form>
-
-                  {documents.length === 0 ? (
-                    <div className="text-center py-12 border-2 border-dashed border-warm-200 rounded-2xl">
-                      <Paperclip className="w-12 h-12 text-warm-300 mx-auto mb-3" />
-                      <p className="text-warm-500 font-medium">Aucun document envoyé pour le moment.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {documents.map((doc) => (
-                        <div
-                          key={doc.id}
-                          className="flex items-center justify-between p-4 border border-warm-100 rounded-xl hover:border-primary-300 hover:shadow-sm transition-all bg-white"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center text-warm-600 shrink-0">
-                              <Paperclip className="w-5 h-5 text-primary-500" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-warm-900 truncate">{doc.label || doc.file_name}</p>
-                              <p className="text-xs text-warm-500">
-                                {(doc.size_bytes / 1024).toFixed(0)} Ko • {formatDate(doc.created_at)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              onClick={() => handleDownloadDocument(doc)}
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-2 rounded-lg transition-colors"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              Voir
-                            </button>
-                            <button
-                              onClick={() => handleDeleteDocument(doc.id)}
-                              className="inline-flex items-center justify-center text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                              aria-label="Supprimer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
               {/* Tab 5: RDV */}
               {activeTab === 'rdv' && (
                 <motion.div
@@ -1005,14 +875,79 @@ export default function MemberDashboard() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-display font-black text-2xl text-warm-900">Mes Rendez-vous</h3>
-                      <p className="text-warm-500 text-sm">Vos réservations passées et à venir</p>
+                      <p className="text-warm-500 text-sm">
+                        Vos rendez-vous avec l&apos;association et ceux enregistrés pour vous
+                      </p>
                     </div>
                     <Button variant="primary" size="sm" onClick={() => router.push('/rendez-vous')}>
                       Prendre RDV
                     </Button>
                   </div>
 
-                  {appointments.length === 0 ? (
+                  {/* Rendez-vous extérieurs, saisis par l'association */}
+                  {externalAppointments.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-warm-400">
+                        Vos démarches extérieures
+                      </p>
+                      {externalAppointments.map((rdv) => {
+                        const aVenir = new Date(rdv.starts_at) > new Date()
+                        return (
+                          <div
+                            key={rdv.id}
+                            className={`p-4 border rounded-xl bg-white transition-all ${
+                              aVenir ? 'border-primary-200 shadow-sm' : 'border-warm-100 opacity-70'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-xl bg-secondary-50 flex items-center justify-center shrink-0">
+                                  <MapPin className="w-5 h-5 text-secondary-600" />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-bold text-warm-900">{rdv.title}</p>
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary-50 text-secondary-700 border border-secondary-200">
+                                      {libelleCategorie(rdv.category)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-warm-500 capitalize mt-0.5">
+                                    {appointmentDateTimeFmt.format(new Date(rdv.starts_at))}
+                                    {rdv.location ? ` — ${rdv.location}` : ''}
+                                  </p>
+                                  {rdv.preparation && (
+                                    <div className="mt-2 p-2.5 bg-warm-50 rounded-lg border border-warm-100">
+                                      <p className="text-xs font-semibold text-warm-700 mb-0.5">
+                                        À apporter
+                                      </p>
+                                      <p className="text-xs text-warm-600 whitespace-pre-line">
+                                        {rdv.preparation}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteExternalAppointment(rdv.id)}
+                                className="inline-flex items-center justify-center text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors shrink-0"
+                                aria-label="Supprimer ce rendez-vous"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {externalAppointments.length > 0 && appointments.length > 0 && (
+                    <p className="text-xs font-semibold uppercase tracking-wider text-warm-400 pt-2">
+                      Avec l&apos;association
+                    </p>
+                  )}
+
+                  {appointments.length === 0 && externalAppointments.length === 0 ? (
                     <div className="text-center py-12 border-2 border-dashed border-warm-200 rounded-2xl">
                       <Calendar className="w-12 h-12 text-warm-300 mx-auto mb-3" />
                       <p className="text-warm-500 font-medium">Vous n&apos;avez aucun rendez-vous pour le moment.</p>
@@ -1159,6 +1094,55 @@ export default function MemberDashboard() {
                     </Button>
                   </form>
 
+                  {/* ── Suivi des rendez-vous extérieurs (consentement art. 9) ── */}
+                  <div className="border-t border-warm-100 pt-8 mt-10">
+                    <div className="bg-secondary-50/60 border border-secondary-200 rounded-xl p-5 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Calendar className="w-5 h-5 text-secondary-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-warm-900 text-sm">
+                            Suivi de mes rendez-vous extérieurs
+                          </p>
+                          <p className="text-warm-600 text-xs mt-1 leading-relaxed">
+                            L&apos;association peut enregistrer pour vous vos rendez-vous
+                            à la préfecture, à la CAF, chez le médecin ou ailleurs, et
+                            vous rappeler la veille ce qu&apos;il faut apporter. Tout
+                            s&apos;affiche dans l&apos;onglet Mes Rendez-vous.
+                          </p>
+                          <p className="text-warm-600 text-xs mt-2 leading-relaxed">
+                            Ces informations peuvent révéler votre santé ou votre
+                            situation administrative. Nous ne les enregistrons donc
+                            qu&apos;avec votre accord, que vous pouvez retirer à tout
+                            moment. Les rendez-vous déjà notés resteront visibles, et
+                            vous pourrez les supprimer un par un.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pl-8">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={rdvConsent}
+                            disabled={savingConsent}
+                            onChange={(e) => handleToggleRdvConsent(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-warm-300 text-secondary-600 focus:ring-secondary-500 cursor-pointer"
+                          />
+                          <span className="text-sm text-warm-800">
+                            J&apos;autorise l&apos;association à enregistrer mes
+                            rendez-vous extérieurs pour m&apos;aider à les suivre.
+                          </span>
+                        </label>
+
+                        {rdvConsent && rdvConsentAt && (
+                          <p className="text-xs text-warm-500 mt-2 ml-7">
+                            Accord donné le {formatDate(rdvConsentAt)}.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* ── Droits RGPD ── */}
                   <div className="border-t border-warm-100 pt-8 mt-10 space-y-6">
                     <div>
@@ -1201,7 +1185,7 @@ export default function MemberDashboard() {
                             Supprimer mon compte
                           </p>
                           <p className="text-red-700 text-xs mt-1 leading-relaxed">
-                            Votre compte, votre profil, vos documents et vos
+                            Votre compte, votre profil et vos
                             rendez-vous seront effacés définitivement. Cette
                             action est irréversible.
                           </p>

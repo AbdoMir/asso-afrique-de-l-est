@@ -9,11 +9,18 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
 import type { AppointmentType } from '@/types'
+import {
+  APPOINTMENT_TYPE_LABELS as TYPE_LABELS,
+  APPOINTMENT_REASON_LABELS,
+  EXTERNAL_CATEGORIES,
+  libelleCategorie,
+} from '@/lib/rendez-vous'
+import type { AppointmentReason } from '@/types'
 
-const TYPE_LABELS: Record<string, string> = {
-  administratif: 'Accompagnement administratif',
-  fle_atelier: 'Cours de FLE / Atelier',
-  autre: 'Rendez-vous général',
+/** Les réservations arrivent de l'API sans typage : on borne l'accès ici. */
+function libelleMotif(motif?: string | null): string {
+  if (!motif) return ''
+  return APPOINTMENT_REASON_LABELS[motif as AppointmentReason] ?? motif
 }
 
 const dateFmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
@@ -25,7 +32,7 @@ export default function AdminRendezVousPage() {
   const [checking, setChecking] = useState(true)
   const [isStaff, setIsStaff] = useState(false)
 
-  const [activeTab, setActiveTab] = useState<'slots' | 'bookings'>('slots')
+  const [activeTab, setActiveTab] = useState<'slots' | 'bookings' | 'exterieurs'>('slots')
 
   const [slots, setSlots] = useState<any[]>([])
   const [bookings, setBookings] = useState<any[]>([])
@@ -39,6 +46,20 @@ export default function AdminRendezVousPage() {
   const [endTime, setEndTime] = useState('')
   const [capacity, setCapacity] = useState(1)
   const [submitting, setSubmitting] = useState(false)
+
+  // Onglet « RDV extérieurs » : on cherche un adhérent par email, puis on
+  // enregistre pour lui les rendez-vous qu'il a à l'extérieur.
+  const [rechercheEmail, setRechercheEmail] = useState('')
+  const [recherchant, setRecherchant] = useState(false)
+  const [adherent, setAdherent] = useState<any>(null)
+  const [adherentIntrouvable, setAdherentIntrouvable] = useState(false)
+  const [rdvExterieurs, setRdvExterieurs] = useState<any[]>([])
+  const [extCategory, setExtCategory] = useState<string>('prefecture')
+  const [extTitle, setExtTitle] = useState('')
+  const [extDate, setExtDate] = useState('')
+  const [extTime, setExtTime] = useState('')
+  const [extLocation, setExtLocation] = useState('')
+  const [extPreparation, setExtPreparation] = useState('')
 
   // ─── Access check ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -106,6 +127,98 @@ export default function AdminRendezVousPage() {
   }, [isStaff, loadBookings])
 
   // ─── Actions ──────────────────────────────────────────────────────────
+  const handleRechercheAdherent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!rechercheEmail.trim()) return
+
+    setRecherchant(true)
+    setAdherent(null)
+    setAdherentIntrouvable(false)
+    setRdvExterieurs([])
+
+    try {
+      const response = await fetch(
+        `/api/admin/rendez-vous/exterieurs?email=${encodeURIComponent(rechercheEmail.trim())}`
+      )
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Recherche impossible.')
+
+      if (!result.profile) {
+        setAdherentIntrouvable(true)
+        return
+      }
+
+      setAdherent(result.profile)
+      setRdvExterieurs(result.appointments || [])
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'error' })
+    } finally {
+      setRecherchant(false)
+    }
+  }
+
+  const handleAddRdvExterieur = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!adherent || !extDate || !extTime) return
+
+    setSubmitting(true)
+    try {
+      const startsAt = new Date(`${extDate}T${extTime}`).toISOString()
+
+      const response = await fetch('/api/admin/rendez-vous/exterieurs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: adherent.id,
+          category: extCategory,
+          title: extTitle.trim(),
+          startsAt,
+          location: extLocation.trim() || undefined,
+          preparation: extPreparation.trim() || undefined,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Enregistrement impossible.')
+
+      setRdvExterieurs((prev) =>
+        [...prev, result.appointment].sort(
+          (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+        )
+      )
+      setExtTitle('')
+      setExtDate('')
+      setExtTime('')
+      setExtLocation('')
+      setExtPreparation('')
+
+      toast({
+        title: 'Rendez-vous enregistré',
+        description: `${adherent.first_name} le retrouvera sur son espace.`,
+        variant: 'success',
+      })
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'error' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteRdvExterieur = async (id: string) => {
+    if (!window.confirm('Supprimer ce rendez-vous ?')) return
+
+    try {
+      const response = await fetch(`/api/admin/rendez-vous/exterieurs/${id}`, { method: 'DELETE' })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Suppression impossible.')
+
+      setRdvExterieurs((prev) => prev.filter((r) => r.id !== id))
+      toast({ title: 'Rendez-vous supprimé', variant: 'success' })
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'error' })
+    }
+  }
+
   const handleAddSlot = async (e: React.FormEvent) => {
     e.preventDefault()
     const startAt = new Date(`${date}T${startTime}:00`)
@@ -211,6 +324,14 @@ export default function AdminRendezVousPage() {
             }`}
           >
             Réservations
+          </button>
+          <button
+            onClick={() => setActiveTab('exterieurs')}
+            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+              activeTab === 'exterieurs' ? 'bg-primary-500 text-white shadow-warm' : 'bg-white text-warm-600 border border-warm-100'
+            }`}
+          >
+            RDV extérieurs
           </button>
         </div>
 
@@ -318,7 +439,7 @@ export default function AdminRendezVousPage() {
                                             {isMember && <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-600">adhérent</span>}
                                             <span className="text-warm-500">{email}</span>
                                             {phone && <span className="text-warm-400">· {phone}</span>}
-                                            {b.notes && <span className="text-warm-400 italic">— {b.notes}</span>}
+                                            {b.reason && <span className="text-warm-400 italic">— {libelleMotif(b.reason)}</span>}
                                           </li>
                                         )
                                       })}
@@ -396,7 +517,7 @@ export default function AdminRendezVousPage() {
                                   <span className="text-warm-400">(créneau supprimé)</span>
                                 )}
                               </td>
-                              <td className="py-3 text-warm-500 max-w-[200px]">{b.notes || ''}</td>
+                              <td className="py-3 text-warm-500 max-w-[200px]">{libelleMotif(b.reason)}</td>
                               <td className="py-3">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                                   b.status === 'confirmed' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-warm-100 text-warm-500'
@@ -419,6 +540,173 @@ export default function AdminRendezVousPage() {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'exterieurs' && (
+            <motion.div key="exterieurs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-900">
+                  <p className="font-semibold">Données sensibles</p>
+                  <p className="text-amber-800 text-xs mt-1 leading-relaxed">
+                    Un rendez-vous médical ou en préfecture révèle la situation d&apos;une
+                    personne. N&apos;enregistrez qu&apos;un intitulé neutre et les documents
+                    à apporter — jamais un motif médical ni un détail de dossier.
+                    Chaque saisie est journalisée.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-warm-100 p-6">
+                <h2 className="font-display font-bold text-lg text-warm-900 mb-4">Rechercher un adhérent</h2>
+                <form onSubmit={handleRechercheAdherent} className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="email"
+                    placeholder="email@exemple.fr"
+                    value={rechercheEmail}
+                    onChange={(e) => setRechercheEmail(e.target.value)}
+                    required
+                    className="flex-1"
+                  />
+                  <Button type="submit" variant="primary" isLoading={recherchant}>Rechercher</Button>
+                </form>
+
+                {adherentIntrouvable && (
+                  <p className="text-sm text-warm-600 mt-4">
+                    Aucun adhérent avec cette adresse. Vérifiez l&apos;orthographe : la
+                    recherche est exacte, pour ne pas transformer cet outil en annuaire.
+                  </p>
+                )}
+              </div>
+
+              {adherent && (
+                <>
+                  <div className="bg-white rounded-2xl border border-warm-100 p-6">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <p className="font-bold text-warm-900">{adherent.first_name} {adherent.last_name}</p>
+                        <p className="text-sm text-warm-500">{adherent.email}</p>
+                      </div>
+                      {adherent.external_appointments_consent ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                          Suivi autorisé
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                          Suivi non autorisé
+                        </span>
+                      )}
+                    </div>
+
+                    {!adherent.external_appointments_consent && (
+                      <p className="text-sm text-warm-600 mt-4 leading-relaxed">
+                        Cette personne n&apos;a pas encore autorisé le suivi de ses
+                        rendez-vous. Elle peut le faire elle-même depuis son espace
+                        adhérent, onglet Profil. Tant que ce n&apos;est pas fait, aucune
+                        saisie n&apos;est possible.
+                      </p>
+                    )}
+                  </div>
+
+                  {adherent.external_appointments_consent && (
+                    <div className="bg-white rounded-2xl border border-warm-100 p-6">
+                      <h2 className="font-display font-bold text-lg text-warm-900 mb-4">Ajouter un rendez-vous</h2>
+                      <form onSubmit={handleAddRdvExterieur} className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="ext-cat" className="block text-sm font-medium text-warm-700 mb-1.5">Catégorie</label>
+                            <select
+                              id="ext-cat"
+                              value={extCategory}
+                              onChange={(e) => setExtCategory(e.target.value)}
+                              className="w-full px-4 py-2.5 border border-warm-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+                            >
+                              {EXTERNAL_CATEGORIES.map((c) => (
+                                <option key={c.id} value={c.id}>{c.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <Input
+                            label="Intitulé"
+                            placeholder="Renouvellement de titre de séjour"
+                            value={extTitle}
+                            onChange={(e) => setExtTitle(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <Input label="Date" type="date" value={extDate} onChange={(e) => setExtDate(e.target.value)} required />
+                          <Input label="Heure" type="time" value={extTime} onChange={(e) => setExtTime(e.target.value)} required />
+                          <Input
+                            label="Lieu (facultatif)"
+                            placeholder="Préfecture du Bas-Rhin"
+                            value={extLocation}
+                            onChange={(e) => setExtLocation(e.target.value)}
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="ext-prep" className="block text-sm font-medium text-warm-700 mb-1.5">
+                            Documents à apporter (facultatif)
+                          </label>
+                          <textarea
+                            id="ext-prep"
+                            value={extPreparation}
+                            onChange={(e) => setExtPreparation(e.target.value)}
+                            rows={3}
+                            maxLength={1000}
+                            placeholder="Passeport, 2 photos, justificatif de domicile de moins de 3 mois"
+                            className="w-full px-4 py-2.5 border border-warm-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary-400"
+                          />
+                          <p className="text-xs text-warm-500 mt-1.5">
+                            Uniquement la liste des pièces. Aucun élément de dossier ni
+                            d&apos;information médicale.
+                          </p>
+                        </div>
+
+                        <Button type="submit" variant="primary" isLoading={submitting}>Enregistrer</Button>
+                      </form>
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-2xl border border-warm-100 p-6">
+                    <h2 className="font-display font-bold text-lg text-warm-900 mb-4">
+                      Rendez-vous enregistrés ({rdvExterieurs.length})
+                    </h2>
+                    {rdvExterieurs.length === 0 ? (
+                      <p className="text-sm text-warm-500">Aucun rendez-vous pour cette personne.</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {rdvExterieurs.map((r) => (
+                          <div key={r.id} className="flex items-start justify-between gap-3 p-4 border border-warm-100 rounded-xl">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-semibold text-warm-900">{r.title}</p>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary-50 text-secondary-700 border border-secondary-200">
+                                  {libelleCategorie(r.category)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-warm-500 mt-0.5">
+                                {dateTimeFmt.format(new Date(r.starts_at))}
+                                {r.location ? ` — ${r.location}` : ''}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteRdvExterieur(r.id)}
+                              className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors shrink-0"
+                              aria-label="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

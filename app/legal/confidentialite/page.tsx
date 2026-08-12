@@ -20,13 +20,13 @@ const RETENTIONS = [
   ['Adhésions, dons et reçus fiscaux', '6 ans (obligation comptable et fiscale)'],
   ['Messages envoyés via le formulaire de contact', '12 mois'],
   ['Rendez-vous et précisions associées', '12 mois après le rendez-vous'],
-  ['Documents déposés dans l\'espace adhérent', '24 mois'],
+  ['Rendez-vous extérieurs enregistrés pour vous', '3 mois après la date'],
   ['Inscription à la newsletter', 'Jusqu\'à votre désinscription'],
   ['Inscription newsletter jamais confirmée', '7 jours'],
 ]
 
 const PROCESSORS = [
-  ['Supabase', 'Base de données, comptes et stockage des documents', '🇪🇺 Suède'],
+  ['Supabase', 'Base de données et comptes adhérents', '🇪🇺 Suède'],
   ['HelloAsso', 'Paiement des adhésions et dons, édition des reçus CERFA', '🇫🇷 France'],
   ['Vercel', 'Hébergement du site et mesure d\'audience', '🇺🇸 États-Unis'],
   ['Resend', 'Envoi des emails (confirmations, notifications)', '🇺🇸 États-Unis'],
@@ -53,7 +53,7 @@ export default function ConfidentialitePage() {
             <h1 className="font-display font-black text-3xl text-warm-900">Politique de Confidentialité</h1>
           </div>
 
-          <p className="text-warm-500 text-xs italic">Dernière mise à jour : 6 août 2026</p>
+          <p className="text-warm-500 text-xs italic">Dernière mise à jour : 12 août 2026</p>
 
           <section className="space-y-3">
             <h2 className="font-bold text-warm-900 text-lg">1. Qui traite vos données</h2>
@@ -83,12 +83,17 @@ export default function ConfidentialitePage() {
               </li>
               <li>
                 <strong>Prise de rendez-vous</strong> : nom, email, téléphone facultatif, et
-                les précisions que vous choisissez de nous communiquer avant l&apos;entretien.
+                le motif choisi dans une liste (aide administrative, cours de français,
+                emploi, traduction). Il n&apos;y a volontairement pas de champ libre : votre
+                situation se discute de vive voix, elle n&apos;a pas à être écrite dans un
+                formulaire.
               </li>
               <li>
-                <strong>Espace adhérent</strong> : les documents que vous y déposez
-                vous-même dans le cadre de votre accompagnement administratif. Vous seul et
-                l&apos;équipe de l&apos;association y avez accès.
+                <strong>Suivi de vos rendez-vous extérieurs</strong> : si vous le
+                demandez, l&apos;association note pour vous vos rendez-vous à la préfecture,
+                à la CAF, chez le médecin ou ailleurs — la date, le lieu, un intitulé et la
+                liste des documents à apporter. Nous ne demandons jamais le motif médical
+                ni le détail de votre dossier.
               </li>
               <li>
                 <strong>Newsletter</strong> : adresse email, prénom facultatif, et la preuve
@@ -109,7 +114,7 @@ export default function ConfidentialitePage() {
               <li><strong>Gérer votre adhésion et vos dons</strong> — exécution de notre engagement mutuel.</li>
               <li><strong>Éditer et transmettre vos reçus fiscaux CERFA</strong> — obligation légale.</li>
               <li><strong>Répondre à vos demandes et organiser vos rendez-vous</strong> — intérêt légitime de l&apos;association à mener sa mission d&apos;accompagnement.</li>
-              <li><strong>Vous accompagner dans vos démarches administratives</strong> — votre consentement, que vous pouvez retirer à tout moment.</li>
+              <li><strong>Suivre vos rendez-vous extérieurs</strong> — votre consentement explicite (art. 9.2.a), que vous pouvez retirer à tout moment. Voir la section 7.</li>
               <li><strong>Vous envoyer notre newsletter</strong> — votre consentement, recueilli par une case à cocher puis confirmé par email.</li>
               <li><strong>Protéger le site des abus</strong> — intérêt légitime à la sécurité de nos services.</li>
             </ul>
@@ -170,7 +175,7 @@ export default function ConfidentialitePage() {
               </table>
             </div>
             <p className="text-warm-600 text-sm leading-relaxed">
-              <strong>Transferts hors Union européenne.</strong> Votre compte, vos documents
+              <strong>Transferts hors Union européenne.</strong> Votre compte
               et l&apos;ensemble de vos données d&apos;adhérent sont hébergés en Suède, au sein
               de l&apos;Union européenne. Certains prestataires techniques sont établis aux
               États-Unis : ces transferts sont encadrés par les clauses contractuelles types
@@ -198,7 +203,36 @@ export default function ConfidentialitePage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-bold text-warm-900 text-lg">7. Vos droits</h2>
+            <h2 className="font-bold text-warm-900 text-lg">7. Le suivi de vos rendez-vous</h2>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              Beaucoup de familles que nous accompagnons manquent des rendez-vous
+              importants parce que les convocations arrivent en langage administratif.
+              Nous proposons donc de les noter pour vous et de vous les rappeler la
+              veille, avec la liste de ce qu&apos;il faut apporter.
+            </p>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              <strong>Ce service repose entièrement sur votre accord.</strong> Un
+              rendez-vous médical ou en préfecture peut révéler votre santé ou votre
+              situation administrative : ce sont des données que la loi protège
+              particulièrement. Nous ne les enregistrons donc qu&apos;avec votre
+              consentement explicite, que vous donnez vous-même depuis votre espace
+              adhérent et que vous pouvez <strong>retirer à tout moment</strong>, aussi
+              simplement que vous l&apos;avez donné.
+            </p>
+            <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1.5">
+              <li>Sans votre accord, l&apos;association ne peut rien enregistrer — le système le refuse.</li>
+              <li>Vous pouvez supprimer n&apos;importe quel rendez-vous, à tout moment, depuis votre espace.</li>
+              <li>Chaque rendez-vous est effacé automatiquement 3 mois après sa date.</li>
+              <li>Seuls les membres habilités de l&apos;association y ont accès, et chaque consultation est enregistrée dans un journal.</li>
+              <li>Si vous retirez votre accord, plus rien ne sera ajouté ; les rendez-vous déjà notés restent visibles pour vous, et vous pouvez les supprimer.</li>
+            </ul>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              Base légale : votre consentement explicite (art. 9.2.a du RGPD).
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-bold text-warm-900 text-lg">8. Vos droits</h2>
             <p className="text-warm-600 text-sm leading-relaxed">
               Le RGPD vous reconnaît un droit d&apos;<strong>accès</strong>, de{' '}
               <strong>rectification</strong>, d&apos;<strong>effacement</strong>, de{' '}
@@ -244,11 +278,11 @@ export default function ConfidentialitePage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-bold text-warm-900 text-lg">8. Sécurité et décisions automatisées</h2>
+            <h2 className="font-bold text-warm-900 text-lg">9. Sécurité et décisions automatisées</h2>
             <p className="text-warm-600 text-sm leading-relaxed">
               Vos données sont protégées par un cloisonnement strict au niveau de la base
               (chaque personne n&apos;accède qu&apos;aux siennes), un stockage privé des
-              documents, une double authentification obligatoire pour l&apos;équipe de
+              données, une double authentification obligatoire pour l&apos;équipe de
               l&apos;association et un chiffrement des échanges.
             </p>
             <p className="text-warm-600 text-sm leading-relaxed">
@@ -259,7 +293,7 @@ export default function ConfidentialitePage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="font-bold text-warm-900 text-lg">9. Évolution de cette politique</h2>
+            <h2 className="font-bold text-warm-900 text-lg">10. Évolution de cette politique</h2>
             <p className="text-warm-600 text-sm leading-relaxed">
               Cette politique peut être modifiée pour refléter une évolution du site ou de
               la réglementation. La date de dernière mise à jour figure en haut de cette

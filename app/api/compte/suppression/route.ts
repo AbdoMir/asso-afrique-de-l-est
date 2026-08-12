@@ -16,7 +16,7 @@ const CONFIRMATION_PHRASE = 'SUPPRIMER'
  * strictement nécessaire au reçu est figée dans `archived_identity`.
  *
  * Tout le reste disparaît : compte d'authentification, profil, adhésions
- * (par cascade), documents et leurs fichiers, réservations, newsletter.
+ * (par cascade), réservations, newsletter.
  */
 export async function POST(request: NextRequest) {
   if (await isRateLimited(`compte-suppression:${getClientIp(request)}`, 5, 60 * 60 * 1000)) {
@@ -80,22 +80,7 @@ export async function POST(request: NextRequest) {
       if (archiveError) throw archiveError
     }
 
-    // 2. Fichiers déposés : les lignes tomberaient en cascade, mais les objets
-    //    de stockage, eux, survivraient au compte.
-    const { data: documents } = await admin
-      .from('member_documents')
-      .select('storage_path')
-      .eq('user_id', user.id)
-
-    if (documents && documents.length > 0) {
-      const { error: storageError } = await admin.storage
-        .from('member-documents')
-        .remove(documents.map((doc) => doc.storage_path))
-
-      if (storageError) throw storageError
-    }
-
-    // 3. Réservations de rendez-vous : leur FK est en `set null`, elles
+    // 2. Réservations de rendez-vous : leur FK est en `set null`, elles
     //    resteraient sinon en base sans rattachement ni utilité.
     const { error: bookingsError } = await admin
       .from('appointment_bookings')
@@ -104,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     if (bookingsError) throw bookingsError
 
-    // 4. Newsletter : rattachée à l'email, pas au compte.
+    // 3. Newsletter : rattachée à l'email, pas au compte.
     if (user.email) {
       const { error: newsletterError } = await admin
         .from('newsletter_subscribers')
@@ -114,8 +99,8 @@ export async function POST(request: NextRequest) {
       if (newsletterError) throw newsletterError
     }
 
-    // 5. Le compte d'authentification. La cascade emporte le profil, les
-    //    adhésions et les lignes de documents ; les dons et reçus fiscaux
+    // 4. Le compte d'authentification. La cascade emporte le profil, les
+    //    adhésions ; les dons et reçus fiscaux
     //    passent en `user_id NULL` et sont conservés (obligation comptable).
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
 

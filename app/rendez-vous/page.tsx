@@ -9,10 +9,11 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import type { AppointmentType, AppointmentSlot } from '@/types'
+import { APPOINTMENT_REASONS as REASONS } from '@/lib/rendez-vous'
 
 const TYPES: { id: AppointmentType; label: string; description: string; icon: any }[] = [
   {
@@ -50,7 +51,7 @@ export default function RendezVousPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [notes, setNotes] = useState('')
+  const [reason, setReason] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -109,7 +110,7 @@ export default function RendezVousPage() {
           name,
           email,
           phone: phone || undefined,
-          notes: notes || undefined,
+          reason: reason || undefined,
         }),
       })
 
@@ -146,7 +147,7 @@ export default function RendezVousPage() {
       setEmail('')
       setPhone('')
     }
-    setNotes('')
+    setReason('')
   }
 
   const groupedSlots = slots.reduce<Record<string, SlotWithRemaining[]>>((acc, slot) => {
@@ -363,12 +364,26 @@ export default function RendezVousPage() {
                           leftAddon={<Phone className="w-4 h-4" />}
                         />
 
-                        <Textarea
-                          label="Précisions (facultatif)"
-                          placeholder="Un détail à nous communiquer avant le rendez-vous ?"
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                        />
+                        <div>
+                          <label htmlFor="motif" className="block text-sm font-medium text-warm-700 mb-1.5">
+                            Motif du rendez-vous (facultatif)
+                          </label>
+                          <select
+                            id="motif"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="w-full px-4 py-2.5 border border-warm-200 rounded-xl bg-white text-warm-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent"
+                          >
+                            <option value="">Je préfère en parler sur place</option>
+                            {REASONS.map((r) => (
+                              <option key={r.id} value={r.id}>{r.label}</option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-warm-500 mt-1.5">
+                            Nous en parlerons plus en détail lors du rendez-vous — inutile
+                            d&apos;écrire ici votre situation personnelle.
+                          </p>
+                        </div>
 
                         <Button
                           type="submit"
