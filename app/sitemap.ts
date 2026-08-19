@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { LOCALE_TAGS, PAGES, pathFor, TRANSLATED_PAGES, type PageKey } from '@/lib/i18n'
+import { absoluteUrl, LOCALE_TAGS, PAGES, TRANSLATED_PAGES, type PageKey } from '@/lib/i18n'
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://asso.afrique.est-sa.org'
 
@@ -41,11 +41,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const locales = TRANSLATED_PAGES[page]
 
     const languages = Object.fromEntries(
-      locales.map((locale) => [LOCALE_TAGS[locale], `${siteUrl}${pathFor(page, locale)}`])
+      locales.map((locale) => [LOCALE_TAGS[locale], absoluteUrl(page, locale)])
     )
 
     return locales.map((locale) => ({
-      url: `${siteUrl}${pathFor(page, locale)}`,
+      url: absoluteUrl(page, locale),
       lastModified,
       changeFrequency: page === 'home' ? ('weekly' as const) : ('monthly' as const),
       priority: locale === 'fr' ? PRIORITIES[page] : PRIORITIES[page] - 0.1,

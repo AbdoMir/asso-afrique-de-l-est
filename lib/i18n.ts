@@ -115,6 +115,25 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_APP_URL || 'https://asso.afrique.est-sa.org'
 
 /**
+ * URL absolue d'une page, segments non latins encodés.
+ *
+ * Les slugs arabes s'écrivent en toutes lettres dans le code et dans la barre
+ * d'adresse — c'est lisible, et c'est la forme que Next.js attend pour le
+ * routage. Mais le protocole sitemap impose des URL encodées : `/ar/من-نحن`
+ * doit y figurer sous la forme `/ar/%D9%85%D9%86-%D9%86%D8%AD%D9%86`. Un
+ * sitemap livrant les octets UTF-8 bruts expose les pages arabes au rejet, et
+ * elles n'entrent alors jamais dans l'index.
+ *
+ * La même forme encodée sert aux canonical et aux hreflang, pour qu'une seule
+ * écriture désigne chaque page partout.
+ */
+export function absoluteUrl(page: PageKey, locale: Locale): string {
+  const path = pathFor(page, locale)
+  const encoded = path.split('/').map(encodeURIComponent).join('/')
+  return `${SITE_URL}${encoded}`
+}
+
+/**
  * Balises `hreflang` d'une page : elles indiquent à Google que les URL
  * listées sont le même contenu en plusieurs langues, et non des pages
  * concurrentes. Seules les langues où la page existe vraiment sont déclarées.
@@ -126,12 +145,12 @@ export function alternatesFor(page: PageKey, locale: Locale) {
 
   const languages: Record<string, string> = {}
   for (const l of available) {
-    languages[LOCALE_TAGS[l]] = `${SITE_URL}${pathFor(page, l)}`
+    languages[LOCALE_TAGS[l]] = absoluteUrl(page, l)
   }
-  languages['x-default'] = `${SITE_URL}${pathFor(page, DEFAULT_LOCALE)}`
+  languages['x-default'] = absoluteUrl(page, DEFAULT_LOCALE)
 
   return {
-    canonical: `${SITE_URL}${pathFor(page, locale)}`,
+    canonical: absoluteUrl(page, locale),
     languages,
   }
 }
