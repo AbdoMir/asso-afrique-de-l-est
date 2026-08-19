@@ -3,9 +3,40 @@ import { escapeHtml } from '@/lib/utils'
 import { ASSOCIATION_ADDRESS, ASSOCIATION_LEGAL_FORM_SHORT } from '@/lib/association'
 import { APPOINTMENT_TYPE_LABELS, libelleCategorie } from '@/lib/rendez-vous'
 
-export const resend = new Resend(process.env.RESEND_API_KEY)
+/**
+ * Client Resend, construit à la première utilisation.
+ *
+ * Il l'était auparavant au chargement du module. Or Next.js évalue les modules
+ * des routes pendant la compilation, pour en collecter les métadonnées : un
+ * build sans RESEND_API_KEY échouait donc entièrement, alors que la clé ne
+ * sert qu'à l'exécution. C'est ce qui a fait tomber le premier déploiement de
+ * prévisualisation, où les variables d'environnement de production ne sont pas
+ * exposées.
+ *
+ * Différer la construction rend la compilation indépendante des secrets, et
+ * déplace la panne là où elle est lisible : au premier envoi réel.
+ */
+let client: Resend | null = null
 
-const FROM = `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL}>`
+function getResend(): Resend {
+  if (client) return client
+
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) {
+    throw new Error(
+      "RESEND_API_KEY est absente : aucun email ne peut être envoyé. " +
+        "Renseignez-la dans les variables d'environnement du projet."
+    )
+  }
+
+  client = new Resend(apiKey)
+  return client
+}
+
+/** Adresse d'expédition, lue à l'envoi plutôt qu'au chargement, même raison. */
+function from(): string {
+  return `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL}>`
+}
 
 // ─── Welcome Email ─────────────────────────────────────────────────────────────
 
@@ -16,8 +47,8 @@ export async function sendWelcomeEmail(params: {
   amount: number
   frequency: 'once' | 'monthly'
 }) {
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     subject: `Bienvenue dans l'association Afrique de l'Est et ses amis ! 🌍`,
     html: `
@@ -86,8 +117,8 @@ export async function sendAppointmentConfirmation(params: {
     minute: '2-digit',
   }).format(new Date(params.startAt))
 
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
     subject: `Confirmation de votre rendez-vous — Association Afrique de l'Est et ses amis`,
@@ -137,8 +168,8 @@ export async function sendAppointmentReminder(params: {
 }) {
   const typeLabel = APPOINTMENT_TYPE_LABELS[params.type] || params.type
 
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
     subject: `Rappel : votre rendez-vous demain`,
@@ -179,8 +210,8 @@ export async function sendExternalAppointmentReminder(params: {
        </div>`
     : ''
 
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     reply_to: process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr',
     subject: `Rappel : ${params.title} demain`,
@@ -212,8 +243,8 @@ export async function sendContactConfirmation(params: {
   name: string
   subject: string
 }) {
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     subject: `Votre message a bien été reçu — Association Afrique de l'Est`,
     html: `
@@ -269,8 +300,8 @@ export async function sendNewsletterWelcome(params: {
   firstName?: string
   unsubscribeToken: string
 }) {
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     subject: `Bienvenue dans notre newsletter ! 🌍`,
     headers: unsubscribeHeaders(params.unsubscribeToken),
@@ -296,8 +327,8 @@ export async function sendNewsletterConfirmation(params: {
   firstName?: string
   confirmUrl: string
 }) {
-  return resend.emails.send({
-    from: FROM,
+  return getResend().emails.send({
+    from: from(),
     to: params.to,
     subject: `Confirmez votre inscription à notre newsletter`,
     html: `
