@@ -7,28 +7,41 @@ import { Menu, X, Heart, ChevronDown, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { pathFor, type Locale } from '@/lib/i18n'
+import type { Dictionary } from '@/lib/dictionaries'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 
-const navigation = [
-  { label: 'Accueil', href: '/' },
-  { label: 'Qui sommes-nous', href: '/qui-sommes-nous' },
-  {
-    label: 'Nos actions',
-    href: '/nos-actions',
-    children: [
-      { label: 'Toutes nos actions', href: '/nos-actions' },
-      { label: 'Traduction', href: '/nos-focus#traduction' },
-      { label: 'Jeunesse', href: '/nos-focus#jeunesse' },
-      { label: 'Emploi', href: '/nos-focus#emploi' },
-    ],
-  },
-  { label: 'Nos focus', href: '/nos-focus' },
-  { label: 'Partenaires', href: '/partenaires' },
-  { label: 'Adhérer & Soutenir', href: '/adherer-soutenir' },
-  { label: 'Prendre RDV', href: '/rendez-vous' },
-  { label: 'Contact', href: '/contact' },
-]
+/**
+ * Le menu se construit à partir de la langue : les libellés viennent du
+ * dictionnaire, les chemins de `pathFor`, qui connaît le slug traduit de
+ * chaque page (/nos-actions, /en/our-actions, /ar/أنشطتنا).
+ */
+function buildNavigation(nav: Dictionary['nav'], locale: Locale) {
+  const focus = pathFor('focus', locale)
+  return [
+    { label: nav.home, href: pathFor('home', locale) },
+    { label: nav.about, href: pathFor('about', locale) },
+    {
+      label: nav.actions,
+      href: pathFor('actions', locale),
+      children: [
+        { label: nav.allActions, href: pathFor('actions', locale) },
+        { label: nav.translation, href: `${focus}#traduction` },
+        { label: nav.youth, href: `${focus}#jeunesse` },
+        { label: nav.employment, href: `${focus}#emploi` },
+      ],
+    },
+    { label: nav.focus, href: focus },
+    { label: nav.partners, href: pathFor('partners', locale) },
+    { label: nav.support, href: pathFor('support', locale) },
+    { label: nav.appointment, href: pathFor('appointment', locale) },
+    { label: nav.contact, href: pathFor('contact', locale) },
+  ]
+}
 
-export function Header() {
+export function Header({ dict, locale }: { dict: Dictionary['nav']; locale: Locale }) {
+  const navigation = buildNavigation(dict, locale)
+  const supportPath = pathFor('support', locale)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
@@ -67,13 +80,13 @@ export function Header() {
     >
       <nav
         className="container-custom flex items-center justify-between h-18 py-3"
-        aria-label="Navigation principale"
+        aria-label={dict.mainNav}
       >
         {/* Logo */}
         <Link
-          href="/"
+          href={pathFor('home', locale)}
           className="flex items-center gap-3 group"
-          aria-label="Accueil — Association Afrique de l'Est et ses amis"
+          aria-label={dict.logoAria}
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-warm transition-transform group-hover:scale-105">
             <Globe className="w-5 h-5 text-white" />
@@ -154,20 +167,22 @@ export function Header() {
 
         {/* CTA + Mobile menu button */}
         <div className="flex items-center gap-3">
-          <Link href="/adherer-soutenir" className="hidden sm:block">
+          <LanguageSwitcher locale={locale} label={dict.languageLabel} />
+
+          <Link href={supportPath} className="hidden sm:block">
             <Button
               variant="primary"
               size="sm"
               leftIcon={<Heart className="w-4 h-4" />}
               className="whitespace-nowrap"
             >
-              Faire un don
+              {dict.donate}
             </Button>
           </Link>
 
-          <Link href="/adherer-soutenir" className="hidden sm:hidden">
+          <Link href={supportPath} className="hidden sm:hidden">
             <Button variant="outline" size="sm">
-              Adhérer
+              {dict.join}
             </Button>
           </Link>
 
@@ -177,7 +192,7 @@ export function Header() {
             onClick={() => setIsMobileOpen(!isMobileOpen)}
             aria-expanded={isMobileOpen}
             aria-controls="mobile-menu"
-            aria-label={isMobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-label={isMobileOpen ? dict.closeMenu : dict.openMenu}
           >
             {isMobileOpen ? (
               <X className="w-6 h-6 text-warm-700" />
@@ -230,19 +245,19 @@ export function Header() {
               ))}
 
               <div className="pt-4 pb-2">
-                <Link href="/adherer-soutenir" className="block">
+                <Link href={supportPath} className="block">
                   <Button
                     variant="primary"
                     size="lg"
                     leftIcon={<Heart className="w-5 h-5" />}
                     className="w-full"
                   >
-                    Faire un don mensuel
+                    {dict.donateMonthly}
                   </Button>
                 </Link>
-                <Link href="/adherer-soutenir" className="block mt-2">
+                <Link href={supportPath} className="block mt-2">
                   <Button variant="outline" size="md" className="w-full">
-                    Adhérer à l&apos;association
+                    {dict.joinAssociation}
                   </Button>
                 </Link>
               </div>

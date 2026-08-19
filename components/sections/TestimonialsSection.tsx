@@ -3,53 +3,22 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
+import type { Dictionary } from '@/lib/dictionaries'
 
-const TESTIMONIALS = [
-  {
-    id: '1',
-    name: 'Amina K.',
-    role: 'Éthiopie → Strasbourg (2025)',
-    quote:
-      "Grâce aux cours de français, l'association m'a accompagnée pour intégrer l'école d'infirmière en France. Aujourd'hui, je continue mon cursus. Je suis éternellement reconnaissante.",
-    flag: '🇪🇹',
-    program: 'Cours FLE + Emploi',
-  },
-  {
-    id: '2',
-    name: 'Hassan M.',
-    role: 'Somalie → Strasbourg (2025)',
-    quote:
-      "Quand je suis arrivé en France, je ne comprenais rien. L'association a tout traduit pour moi : les papiers de la préfecture, les réunions à l'école de mes enfants. Ils m'ont redonné de la dignité dans les moments les plus difficiles.",
-    flag: '🇸🇴',
-    program: 'Traduction + Intégration',
-  },
-  {
-    id: '3',
-    name: 'Fatouma A.',
-    role: 'Djibouti → Strasbourg (2026)',
-    quote:
-      "Mon fils avait des difficultés scolaires. Les ateliers jeunesse de l'association l'ont transformé. Il est maintenant en tête de classe et rêve d'être médecin. Vous avez changé notre vie.",
-    flag: '🇩🇯',
-    program: 'Soutien Jeunesse',
-  },
-  {
-    id: '4',
-    name: 'Saba T.',
-    role: 'Érythrée → Strasbourg (2026)',
-    quote:
-      "L'équipe m'a accompagné pour créer mon CV, préparer mes entretiens et comprendre le marché du travail français. En 3 mois, j'ai obtenu un CDD auprès d'une agence d'intérim d'insertion. Un vrai tremplin vers ma nouvelle vie.",
-    flag: '🇪🇷',
-    program: 'Accompagnement Emploi',
-  },
-]
+type TestimonialsDict = Dictionary['home']['testimonials']
 
-export function TestimonialsSection() {
+/** Seul le drapeau ne se traduit pas ; le reste vient du dictionnaire. */
+const FLAGS = ['🇪🇹', '🇸🇴', '🇩🇯', '🇪🇷']
+
+
+export function TestimonialsSection({ dict }: { dict: TestimonialsDict }) {
   const [current, setCurrent] = useState(0)
+  const items = dict.items
 
-  const prev = () => setCurrent((c) => (c - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)
-  const next = () => setCurrent((c) => (c + 1) % TESTIMONIALS.length)
+  const prev = () => setCurrent((c) => (c - 1 + items.length) % items.length)
+  const next = () => setCurrent((c) => (c + 1) % items.length)
 
-  const testimonial = TESTIMONIALS[current]
+  const testimonial = items[current]
 
   return (
     <section className="section bg-gradient-to-br from-warm-900 to-warm-800 relative overflow-hidden" aria-labelledby="testimonials-heading">
@@ -62,17 +31,17 @@ export function TestimonialsSection() {
       <div className="container-custom relative">
         <div className="text-center mb-12">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold bg-white/10 text-white/90 mb-4">
-            Témoignages
+            {dict.badge}
           </span>
           <h2 id="testimonials-heading" className="text-3xl md:text-4xl font-bold text-white">
-            Ils ont changé de vie grâce à vous
+            {dict.title}
           </h2>
         </div>
 
         <div className="max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
-              key={testimonial.id}
+              key={testimonial.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -97,7 +66,7 @@ export function TestimonialsSection() {
               {/* Author */}
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-3xl border-2 border-white/30 shrink-0">
-                  {testimonial.flag}
+                  {FLAGS[current]}
                 </div>
                 <div>
                   <p className="font-bold text-white text-lg">{testimonial.name}</p>
@@ -117,14 +86,14 @@ export function TestimonialsSection() {
             <button
               onClick={prev}
               className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              aria-label="Témoignage précédent"
+              aria-label={dict.previous}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
             {/* Dots */}
             <div className="flex gap-2">
-              {TESTIMONIALS.map((_, i) => (
+              {items.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrent(i)}
@@ -133,7 +102,7 @@ export function TestimonialsSection() {
                       ? 'w-8 h-2.5 bg-primary-400'
                       : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/50'
                   }`}
-                  aria-label={`Témoignage ${i + 1}`}
+                  aria-label={`${dict.dotLabel} ${i + 1}`}
                   aria-current={i === current}
                 />
               ))}
@@ -142,7 +111,7 @@ export function TestimonialsSection() {
             <button
               onClick={next}
               className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-              aria-label="Témoignage suivant"
+              aria-label={dict.next}
             >
               <ChevronRight className="w-5 h-5" />
             </button>

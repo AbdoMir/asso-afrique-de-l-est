@@ -6,14 +6,19 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Heart, ArrowRight, Users, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { pathFor, type Locale } from '@/lib/i18n'
+import type { Dictionary } from '@/lib/dictionaries'
 
-const ORIGIN_CHIPS = [
-  { code: 'DJ', label: 'Djibouti', color: 'bg-primary-500' },
-  { code: 'SO', label: 'Somalie', color: 'bg-secondary-500' },
-  { code: 'ET', label: 'Éthiopie', color: 'bg-accent-500' },
-  { code: 'SL', label: 'Somaliland', color: 'bg-warm-900' },
-  { code: 'ER', label: 'Érythrée', color: 'bg-primary-700' },
-  { code: 'SD', label: 'Soudan', color: 'bg-secondary-700' },
+type HeroDict = Dictionary['home']['hero']
+
+/** Les noms de pays viennent du dictionnaire ; seul le code reste ici. */
+const ORIGIN_CHIPS: { code: keyof HeroDict['origins']; color: string }[] = [
+  { code: 'DJ', color: 'bg-primary-500' },
+  { code: 'SO', color: 'bg-secondary-500' },
+  { code: 'ET', color: 'bg-accent-500' },
+  { code: 'SL', color: 'bg-warm-900' },
+  { code: 'ER', color: 'bg-primary-700' },
+  { code: 'SD', color: 'bg-secondary-700' },
 ]
 
 function Squiggle({ className = '' }: { className?: string }) {
@@ -35,7 +40,7 @@ function Squiggle({ className = '' }: { className?: string }) {
   )
 }
 
-export function HeroSection() {
+export function HeroSection({ dict, locale }: { dict: HeroDict; locale: Locale }) {
   return (
     <section className="hero-bg relative overflow-hidden" aria-label="Hero">
       <div className="container-custom relative z-10 py-16 md:py-24">
@@ -50,7 +55,7 @@ export function HeroSection() {
             >
               <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold mb-6">
                 <MapPin className="w-4 h-4" />
-                Association de droit local — Alsace
+                {dict.badge}
               </span>
             </motion.div>
 
@@ -61,12 +66,12 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              Ensemble, construisons{' '}
+              {dict.titleBefore}{' '}
               <span className="relative inline-block">
-                <span className="gradient-text">l&apos;avenir</span>
+                <span className="gradient-text">{dict.titleHighlight}</span>
                 <Squiggle className="absolute left-0 -bottom-2 w-full h-3 text-accent-500" />
               </span>{' '}
-              des familles d&apos;Afrique de l&apos;Est en France
+              {dict.titleAfter}
             </motion.h1>
 
             {/* Subtitle */}
@@ -76,9 +81,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Nous accompagnons les familles d&apos;Afrique de l&apos;Est dans leur intégration
-              en France : cours de français (FLE), soutien jeunesse, aide à l&apos;emploi
-              et services de traduction.
+              {dict.subtitle}
             </motion.p>
 
             {/* CTAs */}
@@ -88,24 +91,24 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <Link href="/adherer-soutenir#don-mensuel">
+              <Link href={`${pathFor('support', locale)}#don-mensuel`}>
                 <Button
                   variant="primary"
                   size="lg"
                   leftIcon={<Heart className="w-5 h-5" />}
                   className="w-full sm:w-auto"
                 >
-                  Faire un don mensuel
+                  {dict.ctaPrimary}
                 </Button>
               </Link>
-              <Link href="/qui-sommes-nous">
+              <Link href={pathFor('about', locale)}>
                 <Button
                   variant="outline"
                   size="lg"
                   rightIcon={<ArrowRight className="w-5 h-5" />}
                   className="w-full sm:w-auto"
                 >
-                  Découvrir l&apos;association
+                  {dict.ctaSecondary}
                 </Button>
               </Link>
             </motion.div>
@@ -123,7 +126,7 @@ export function HeroSection() {
                   {ORIGIN_CHIPS.map((origin, i) => (
                     <div
                       key={i}
-                      title={origin.label}
+                      title={dict.origins[origin.code]}
                       className={`w-10 h-10 rounded-full ${origin.color} border-2 border-warm-50 flex items-center justify-center text-[11px] font-bold text-white`}
                     >
                       {origin.code}
@@ -131,8 +134,8 @@ export function HeroSection() {
                   ))}
                 </div>
                 <div>
-                  <p className="font-semibold text-warm-900 text-sm">+120 familles</p>
-                  <p className="text-warm-500 text-xs">nous font confiance</p>
+                  <p className="font-semibold text-warm-900 text-sm">{dict.familiesCount}</p>
+                  <p className="text-warm-500 text-xs">{dict.familiesTrust}</p>
                 </div>
               </div>
 
@@ -145,7 +148,7 @@ export function HeroSection() {
                     <span key={s} className="text-accent-500 text-lg">★</span>
                   ))}
                 </div>
-                <p className="text-warm-500 text-xs">Reconnu d&apos;intérêt général</p>
+                <p className="text-warm-500 text-xs">{dict.recognised}</p>
               </div>
             </motion.div>
           </div>
@@ -165,7 +168,7 @@ export function HeroSection() {
             <div className="relative blob-1 overflow-hidden shadow-blob aspect-[4/5] w-full">
               <Image
                 src="/images/stock/hero_image.jpeg"
-                alt="Membre de la communauté soutenue par l'association"
+                alt={dict.photoAlt}
                 fill
                 priority
                 className="object-cover"

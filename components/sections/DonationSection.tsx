@@ -16,76 +16,19 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import { cn } from '@/lib/utils'
-import type { MembershipFormula, MembershipType } from '@/types'
+import type { MembershipType } from '@/types'
+import type { Dictionary } from '@/lib/dictionaries'
+
+type DonationDict = Dictionary['pages']['support']['donation']
 
 // ─── Formulas ──────────────────────────────────────────────────────────────────
 
-const FORMULAS: MembershipFormula[] = [
-  {
-    id: 'simple',
-    label: 'Adhésion simple',
-    amount: 10,
-    frequency: 'once',
-    description: 'Devenez membre de l\'association',
-    benefits: [
-      'Carte de membre officielle',
-      'Newsletter mensuelle',
-      'Accès aux événements publics',
-      'Reçu fiscal CERFA',
-    ],
-    provider: 'helloasso',
-    color: 'from-warm-400 to-warm-500',
-    badge: undefined,
-  },
-  {
-    id: 'monthly_5',
-    label: 'Don solidaire',
-    amount: 5,
-    frequency: 'monthly',
-    description: 'Soutenez nos actions au quotidien',
-    benefits: [
-      'Reçu fiscal annuel automatique',
-      'Newsletter mensuelle',
-      'Rapport d\'impact annuel',
-      'Résiliation sans engagement',
-    ],
-    provider: 'helloasso',
-    color: 'from-primary-400 to-primary-500',
-    badge: undefined,
-  },
-  {
-    id: 'monthly_10',
-    label: 'Don engagé',
-    amount: 10,
-    frequency: 'monthly',
-    description: 'Rejoignez notre cercle d\'engagés',
-    benefits: [
-      'Tout du Don solidaire',
-      'Invitations aux événements internes',
-      'Accès aux bilans trimestriels',
-      'Badge adhérent sur le site',
-    ],
-    provider: 'helloasso',
-    color: 'from-accent-400 to-primary-500',
-    highlighted: true,
-    badge: 'Populaire',
-  },
-  {
-    id: 'monthly_20',
-    label: 'Don soutien',
-    amount: 20,
-    frequency: 'monthly',
-    description: 'Devenez un pilier de l\'association',
-    benefits: [
-      'Tout du Don engagé',
-      'Témoignage d\'impact personnalisé',
-      'Goodies de l\'association',
-      'Rencontre annuelle avec l\'équipe',
-    ],
-    provider: 'helloasso',
-    color: 'from-secondary-500 to-secondary-600',
-    badge: 'Premium',
-  },
+/** Montants, périodicité et habillage. Les textes viennent du dictionnaire. */
+const FORMULAS = [
+  { id: 'simple' as MembershipType, amount: 10, monthly: false, color: 'from-warm-400 to-warm-500', highlighted: false, badge: null },
+  { id: 'monthly_5' as MembershipType, amount: 5, monthly: true, color: 'from-primary-400 to-primary-500', highlighted: false, badge: null },
+  { id: 'monthly_10' as MembershipType, amount: 10, monthly: true, color: 'from-accent-400 to-primary-500', highlighted: true, badge: 'popular' as const },
+  { id: 'monthly_20' as MembershipType, amount: 20, monthly: true, color: 'from-secondary-500 to-secondary-600', highlighted: false, badge: 'premium' as const },
 ]
 
 // URLs complètes des formulaires HelloAsso, copiées depuis le back-office
@@ -112,17 +55,17 @@ const FORMULA_ICONS: Record<MembershipType, React.ReactNode> = {
 
 // ─── Validation schema ─────────────────────────────────────────────────────────
 
-const donationSchema = z.object({
-  first_name: z.string().min(2, 'Prénom requis (minimum 2 caractères)'),
-  last_name: z.string().min(2, 'Nom requis (minimum 2 caractères)'),
-  email: z.string().email('Adresse email invalide'),
+const makeDonationSchema = (t: DonationDict) => z.object({
+  first_name: z.string().min(2, t.errorFirstName),
+  last_name: z.string().min(2, t.errorLastName),
+  email: z.string().email(t.errorEmail),
   phone: z.string().optional(),
-  address: z.string().min(5, 'Adresse requise'),
-  city: z.string().min(2, 'Ville requise'),
-  zip_code: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)'),
+  address: z.string().min(5, t.errorAddress),
+  city: z.string().min(2, t.errorCity),
+  zip_code: z.string().regex(/^\d{5}$/, t.errorZip),
   comment: z.string().optional(),
   accept_statutes: z.literal(true, {
-    errorMap: () => ({ message: 'Vous devez accepter les statuts de l\'association' }),
+    errorMap: () => ({ message: t.errorStatutes }),
   }),
   newsletter_consent: z.boolean().optional(),
   sepa_mandate_consent: z.boolean().optional(),
@@ -133,7 +76,7 @@ const donationSchema = z.object({
   }
 )
 
-type DonationFormData = z.infer<typeof donationSchema>
+type DonationFormData = z.infer<ReturnType<typeof makeDonationSchema>>
 
 // ─── Step indicator ────────────────────────────────────────────────────────────
 
@@ -156,7 +99,9 @@ function StepIndicator({ step, current }: { step: number; current: number }) {
 
 const VALID_FORMULA_IDS = FORMULAS.map((f) => f.id)
 
-export function DonationSection() {
+export function DonationSection({ dict }: { dict: DonationDict }) {
+  const t = dict
+  const donationSchema = React.useMemo(() => makeDonationSchema(t), [t])
   const searchParams = useSearchParams()
   const requestedFormula = searchParams.get('formula')
   const initialFormula = VALID_FORMULA_IDS.includes(requestedFormula as MembershipType)
@@ -167,8 +112,10 @@ export function DonationSection() {
   const [step, setStep] = useState<1 | 2 | 3>(1) // 1: formula, 2: info, 3: payment
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const formula = FORMULAS.find((f) => f.id === selectedFormula)!
-  const isMonthly = formula.frequency === 'monthly'
+  const formulaIndex = FORMULAS.findIndex((f) => f.id === selectedFormula)
+  const formula = FORMULAS[formulaIndex]
+  const formulaText = t.formulas[formulaIndex]
+  const isMonthly = formula.monthly
 
   const {
     register,
@@ -209,8 +156,8 @@ export function DonationSection() {
   async function onSubmit(data: DonationFormData) {
     if (isMonthly && !sepaConsent) {
       toast({
-        title: 'Mandat SEPA requis',
-        description: 'Veuillez accepter le mandat de prélèvement SEPA pour continuer.',
+        title: t.toastSepaTitle,
+        description: t.toastSepaText,
         variant: 'error',
       })
       return
@@ -220,7 +167,7 @@ export function DonationSection() {
 
     if (!formUrl) {
       toast({
-        title: 'Paiement momentanément indisponible',
+        title: t.toastUnavailableTitle,
         description:
           'Le formulaire de paiement n\'est pas encore configuré. Merci de nous contacter directement.',
         variant: 'error',
@@ -251,8 +198,8 @@ export function DonationSection() {
       window.location.href = formUrl
     } catch (error) {
       toast({
-        title: 'Une erreur est survenue',
-        description: error instanceof Error ? error.message : 'Veuillez réessayer ou nous contacter.',
+        title: t.toastErrorTitle,
+        description: error instanceof Error ? error.message : t.toastErrorText,
         variant: 'error',
       })
       setIsSubmitting(false)
@@ -264,11 +211,7 @@ export function DonationSection() {
       <div className="container-custom">
         {/* Steps */}
         <div className="flex items-center justify-center gap-4 mb-12">
-          {[
-            { n: 1, label: 'Formule' },
-            { n: 2, label: 'Coordonnées' },
-            { n: 3, label: 'Paiement' },
-          ].map((s, i) => (
+          {t.steps.map((label, i) => ({ n: i + 1, label })).map((s, i) => (
             <React.Fragment key={s.n}>
               <div className="flex flex-col items-center gap-1">
                 <StepIndicator step={s.n} current={step} />
@@ -300,14 +243,12 @@ export function DonationSection() {
               transition={{ duration: 0.25 }}
             >
               <div className="text-center mb-10">
-                <h2 className="section-title">Choisissez votre formule</h2>
-                <p className="section-subtitle mx-auto">
-                  Adhésion annuelle ou don mensuel récurrent — chaque contribution compte.
-                </p>
+                <h2 className="section-title">{t.step1Title}</h2>
+                <p className="section-subtitle mx-auto">{t.step1Subtitle}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto mb-10">
-                {FORMULAS.map((f) => (
+                {FORMULAS.map((f, fi) => (
                   <motion.button
                     key={f.id}
                     onClick={() => setSelectedFormula(f.id)}
@@ -328,7 +269,7 @@ export function DonationSection() {
                           ? 'bg-accent-500'
                           : 'bg-secondary-500'
                       )}>
-                        {f.badge}
+                        {f.badge === 'popular' ? t.badgePopular : t.badgePremium}
                       </span>
                     )}
 
@@ -342,9 +283,9 @@ export function DonationSection() {
 
                     {/* Label */}
                     <h3 className="font-display font-bold text-warm-900 text-lg mb-1">
-                      {f.label}
+                      {t.formulas[fi].label}
                     </h3>
-                    <p className="text-warm-500 text-sm mb-3">{f.description}</p>
+                    <p className="text-warm-500 text-sm mb-3">{t.formulas[fi].description}</p>
 
                     {/* Price */}
                     <div className="flex items-baseline gap-1 mb-4">
@@ -352,13 +293,13 @@ export function DonationSection() {
                         {f.amount}€
                       </span>
                       <span className="text-warm-400 text-sm">
-                        {f.frequency === 'monthly' ? '/mois' : '/an'}
+                        {f.monthly ? t.perMonth : t.perYear}
                       </span>
                     </div>
 
                     {/* Benefits */}
                     <ul className="space-y-2">
-                      {f.benefits.map((benefit) => (
+                      {t.formulas[fi].benefits.map((benefit) => (
                         <li key={benefit} className="flex items-start gap-2 text-sm">
                           <Check className="w-4 h-4 text-secondary-500 shrink-0 mt-0.5" />
                           <span className="text-warm-600">{benefit}</span>
@@ -381,21 +322,21 @@ export function DonationSection() {
                 <div className="bg-white rounded-2xl p-6 shadow-card border border-warm-100 mb-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="font-semibold text-warm-900">{formula.label}</p>
-                      <p className="text-warm-500 text-sm">via HelloAsso</p>
+                      <p className="font-semibold text-warm-900">{formulaText.label}</p>
+                      <p className="text-warm-500 text-sm">{t.viaHelloAsso}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black font-display text-primary-500">
                         {formula.amount}€
                       </p>
                       <p className="text-warm-400 text-xs">
-                        {formula.frequency === 'monthly' ? 'par mois' : 'une fois par an'}
+                        {formula.monthly ? t.monthlyLabel : t.yearlyLabel}
                       </p>
                     </div>
                   </div>
                   <div className="text-xs text-warm-400 flex items-center gap-1.5 border-t border-warm-100 pt-3">
                     <Lock className="w-3.5 h-3.5 text-secondary-400" />
-                    Paiement sécurisé — Déductible à 66% des impôts
+                    {t.secureLine}
                   </div>
                 </div>
 
@@ -406,7 +347,7 @@ export function DonationSection() {
                   rightIcon={<ArrowRight className="w-5 h-5" />}
                   onClick={() => setStep(2)}
                 >
-                  Continuer avec cette formule
+                  {t.continueWithFormula}
                 </Button>
               </div>
             </motion.div>
@@ -423,10 +364,8 @@ export function DonationSection() {
             >
               <div className="max-w-2xl mx-auto">
                 <div className="text-center mb-8">
-                  <h2 className="section-title">Vos coordonnées</h2>
-                  <p className="text-warm-500">
-                    Ces informations sont nécessaires pour votre reçu fiscal et votre carte de membre.
-                  </p>
+                  <h2 className="section-title">{t.step2Title}</h2>
+                  <p className="text-warm-500">{t.step2Subtitle}</p>
                 </div>
 
                 <form onSubmit={handleSubmit(() => setStep(3))} noValidate>
@@ -434,14 +373,14 @@ export function DonationSection() {
                     {/* Name row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
-                        label="Prénom"
+                        label={t.firstName}
                         placeholder="Marie"
                         required
                         error={errors.first_name?.message}
                         {...register('first_name')}
                       />
                       <Input
-                        label="Nom"
+                        label={t.lastName}
                         placeholder="Dupont"
                         required
                         error={errors.last_name?.message}
@@ -452,7 +391,7 @@ export function DonationSection() {
                     {/* Email & Phone */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
-                        label="Email"
+                        label={t.email}
                         type="email"
                         placeholder="marie@example.fr"
                         required
@@ -460,7 +399,7 @@ export function DonationSection() {
                         {...register('email')}
                       />
                       <Input
-                        label="Téléphone"
+                        label={t.phone}
                         type="tel"
                         placeholder="+33 6 12 34 56 78"
                         error={errors.phone?.message}
@@ -470,7 +409,7 @@ export function DonationSection() {
 
                     {/* Address */}
                     <Input
-                      label="Adresse"
+                      label={t.address}
                       placeholder="12 rue de la Paix"
                       required
                       error={errors.address?.message}
@@ -479,7 +418,7 @@ export function DonationSection() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <Input
-                        label="Code postal"
+                        label={t.zipCode}
                         placeholder="75001"
                         required
                         maxLength={5}
@@ -487,7 +426,7 @@ export function DonationSection() {
                         {...register('zip_code')}
                       />
                       <Input
-                        label="Ville"
+                        label={t.city}
                         placeholder="Paris"
                         required
                         error={errors.city?.message}
@@ -497,8 +436,8 @@ export function DonationSection() {
 
                     {/* Comment */}
                     <Textarea
-                      label="Commentaire libre"
-                      placeholder="Un message pour l'association, une question..."
+                      label={t.comment}
+                      placeholder={t.commentPlaceholder}
                       {...register('comment')}
                     />
 
@@ -517,14 +456,14 @@ export function DonationSection() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-warm-900">
-                            J&apos;accepte les statuts de l&apos;association{' '}
+                            {t.acceptStatutes}{' '}
                             <span className="text-primary-500">*</span>
                           </p>
                           <p className="text-xs text-warm-500 mt-0.5">
                             <a href="/legal/statuts" target="_blank" className="underline hover:text-primary-500">
-                              Lire les statuts
+                              {t.readStatutes}
                             </a>{' '}
-                            de l&apos;Association Afrique de l&apos;Est et ses amis
+                            {t.readStatutesSuffix}
                           </p>
                         </div>
                       </label>
@@ -548,22 +487,20 @@ export function DonationSection() {
                             <div>
                               <p className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
                                 <Building2 className="w-4 h-4" />
-                                Mandat de prélèvement SEPA{' '}
+                                {t.sepaTitle}{' '}
                                 <span className="text-primary-500">*</span>
                               </p>
                               <p className="text-xs text-blue-700 mt-1 leading-relaxed">
-                                J&apos;autorise l&apos;Association Afrique de l&apos;Est et ses amis 
-                                (créancier SEPA) à envoyer des instructions à ma banque pour débiter 
-                                mon compte du montant de <strong>{formula.amount}€</strong> chaque mois. 
-                                Ce mandat est conforme à la directive européenne sur les services de paiement 
-                                (DSP2). Je peux le révoquer à tout moment.
+                                {t.sepaTextBefore}
+                                <strong>{formula.amount}€</strong>
+                                {t.sepaTextAfter}
                               </p>
                             </div>
                           </label>
                           {isMonthly && !sepaConsent && (
                             <p className="text-xs text-blue-600 flex items-center gap-1 mt-2 ml-8">
                               <Info className="w-3.5 h-3.5" />
-                              Requis pour les dons mensuels
+                              {t.sepaRequired}
                             </p>
                           )}
                         </div>
@@ -581,8 +518,7 @@ export function DonationSection() {
                           <Check className="absolute inset-0 w-3 h-3 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
                         <p className="text-sm text-warm-600">
-                          Je souhaite recevoir la newsletter de l&apos;association 
-                          (actualités, événements, témoignages)
+                          {t.newsletterLabel}
                         </p>
                       </label>
                     </div>
@@ -596,7 +532,7 @@ export function DonationSection() {
                       onClick={() => setStep(1)}
                       className="flex-1"
                     >
-                      ← Retour
+                      {t.back}
                     </Button>
                     <Button
                       type="submit"
@@ -605,13 +541,13 @@ export function DonationSection() {
                       className="flex-2"
                       rightIcon={<ArrowRight className="w-5 h-5" />}
                     >
-                      Continuer vers le paiement
+                      {t.continueToPayment}
                     </Button>
                   </div>
 
                   <PrivacyNotice
-                    purpose="pour gérer votre adhésion et éditer votre reçu fiscal"
-                    retention="6 ans, au titre de nos obligations comptables"
+                    purpose={t.privacyPurpose}
+                    retention={t.privacyRetention}
                     className="mt-4"
                   />
                 </form>
@@ -630,43 +566,42 @@ export function DonationSection() {
             >
               <div className="max-w-2xl mx-auto">
                 <div className="text-center mb-8">
-                  <h2 className="section-title">Récapitulatif & Paiement</h2>
+                  <h2 className="section-title">{t.step3Title}</h2>
                 </div>
 
                 {/* Order summary */}
                 <div className="card p-6 mb-6">
                   <h3 className="font-semibold text-warm-900 mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary-500" />
-                    Votre commande
+                    {t.orderTitle}
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center py-2 border-b border-warm-100">
-                      <span className="text-warm-700">{formula.label}</span>
+                      <span className="text-warm-700">{formulaText.label}</span>
                       <span className="font-bold text-warm-900">
                         {formula.amount}€
-                        {formula.frequency === 'monthly' && <span className="text-warm-400 font-normal text-sm">/mois</span>}
+                        {formula.monthly && <span className="text-warm-400 font-normal text-sm">{t.perMonth}</span>}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm text-warm-500">
-                      <span>Réduction d&apos;impôt (66%)</span>
+                      <span>{t.taxReductionLabel}</span>
                       <span className="text-secondary-600 font-medium">
                         -{(formula.amount * 0.66).toFixed(2)}€
-                        {formula.frequency === 'monthly' && '/mois'}
+                        {formula.monthly && t.perMonth}
                       </span>
                     </div>
                     <div className="flex justify-between items-center font-bold text-warm-900 pt-2 border-t border-warm-100">
-                      <span>Coût réel après impôts</span>
+                      <span>{t.realCostLabel}</span>
                       <span className="text-primary-500">
                         {(formula.amount * 0.34).toFixed(2)}€
-                        {formula.frequency === 'monthly' && '/mois'}
+                        {formula.monthly && t.perMonth}
                       </span>
                     </div>
                   </div>
                   <p className="text-xs text-warm-400 leading-relaxed mt-4 pt-4 border-t border-warm-100">
-                    💡 Vous serez prélevé de {formula.amount}€{formula.frequency === 'monthly' && '/mois'},
-                    intégralement reversés à l&apos;association. Un reçu fiscal CERFA vous permettra de
-                    déduire 66% de ce montant de votre impôt sur le revenu lors de votre prochaine
-                    déclaration.
+                    {t.debitNoteBefore}
+                    {formula.amount}€{formula.monthly && t.perMonth}
+                    {t.debitNoteAfter}
                   </p>
                 </div>
 
@@ -677,10 +612,8 @@ export function DonationSection() {
                       <span className="text-xl">🟢</span>
                     </div>
                     <div>
-                      <p className="font-semibold text-warm-900">Paiement via HelloAsso</p>
-                      <p className="text-sm text-warm-500">
-                        Vous serez redirigé vers la plateforme HelloAsso
-                      </p>
+                      <p className="font-semibold text-warm-900">{t.paymentVia}</p>
+                      <p className="text-sm text-warm-500">{t.redirectNote}</p>
                     </div>
                   </div>
 
@@ -690,11 +623,9 @@ export function DonationSection() {
                     <div className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex gap-3">
                       <Info className="w-5 h-5 shrink-0 text-amber-600" />
                       <p className="text-sm leading-relaxed">
-                        Sur HelloAsso, réglez bien avec l&apos;adresse{' '}
-                        <span className="font-semibold">{accountEmail}</span> : c&apos;est
-                        elle qui permet de rattacher votre versement à votre espace
-                        adhérent. Avec une autre adresse, le don sera enregistré mais
-                        n&apos;apparaîtra pas dans votre compte.
+                        {t.accountEmailBefore}
+                        <span className="font-semibold">{accountEmail}</span>
+                        {t.accountEmailAfter}
                       </p>
                     </div>
                   )}
@@ -702,15 +633,15 @@ export function DonationSection() {
                   <div className="bg-warm-50 rounded-xl p-4 text-sm text-warm-600 space-y-1">
                     <p className="flex items-center gap-2">
                       <Lock className="w-4 h-4 text-secondary-500 shrink-0" />
-                      Connexion sécurisée SSL/TLS
+                      {t.sslNote}
                     </p>
                     <p className="flex items-center gap-2">
                       <Shield className="w-4 h-4 text-secondary-500 shrink-0" />
-                      Certifié PCI-DSS — Aucune donnée bancaire stockée
+                      {t.pciNote}
                     </p>
                     <p className="flex items-center gap-2">
                       <FileCheck className="w-4 h-4 text-secondary-500 shrink-0" />
-                      Reçu fiscal CERFA émis automatiquement par HelloAsso
+                      {t.cerfaNote}
                     </p>
                   </div>
                 </div>
@@ -723,7 +654,7 @@ export function DonationSection() {
                     onClick={() => setStep(2)}
                     className="flex-1"
                   >
-                    ← Retour
+                    {t.back}
                   </Button>
                   <Button
                     variant="primary"
@@ -733,7 +664,7 @@ export function DonationSection() {
                     onClick={handleSubmit(onSubmit)}
                     leftIcon={<Lock className="w-4 h-4" />}
                   >
-                    Payer via HelloAsso
+                    {t.payButton}
                   </Button>
                 </div>
               </div>

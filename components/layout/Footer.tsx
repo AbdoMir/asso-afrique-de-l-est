@@ -9,30 +9,44 @@ import {
   ASSOCIATION_LEGAL_FORM_SHORT,
   ASSOCIATION_SIRET,
 } from '@/lib/association'
+import { pathFor, type Locale } from '@/lib/i18n'
+import type { Dictionary } from '@/lib/dictionaries'
 
-const footerLinks = {
-  association: [
-    { label: 'Qui sommes-nous', href: '/qui-sommes-nous' },
-    { label: 'Nos actions', href: '/nos-actions' },
-    { label: 'Nos focus', href: '/nos-focus' },
-    { label: 'Partenaires & Gouvernance', href: '/partenaires' },
-    { label: 'Contact', href: '/contact' },
-  ],
-  soutenir: [
-    { label: 'Adhérer à l\'association', href: '/adherer-soutenir?formula=simple#don-mensuel' },
-    { label: 'Faire un don mensuel', href: '/adherer-soutenir#don-mensuel' },
-    { label: 'Faire un don ponctuel', href: '/adherer-soutenir?formula=simple#don-mensuel' },
-    { label: 'Prendre rendez-vous', href: '/rendez-vous' },
-    { label: 'Espace adhérent', href: '/espace-adherent' },
-  ],
-  legal: [
-    { label: 'Mentions légales', href: '/legal/mentions-legales' },
-    { label: 'Politique de confidentialité', href: '/legal/confidentialite' },
-    { label: 'Statuts de l\'association', href: '/legal/statuts' },
-    { label: 'Reçus fiscaux CERFA', href: '/espace-adherent' },
-  ],
+/**
+ * Les pages légales et l'espace adhérent n'existent qu'en français : on les
+ * préfixe avec `localizeHref` pour rester dans la même arborescence, sans
+ * prétendre qu'elles sont traduites.
+ */
+function buildFooterLinks(dict: Dictionary, locale: Locale) {
+  const support = pathFor('support', locale)
+  // Mentions légales, statuts et espace adhérent n'existent qu'en français :
+  // leurs chemins restent sans préfixe, quelle que soit la langue de lecture.
+  const memberArea = '/espace-adherent'
+  const t = dict.footer.links
+
+  return {
+    association: [
+      { label: dict.nav.about, href: pathFor('about', locale) },
+      { label: dict.nav.actions, href: pathFor('actions', locale) },
+      { label: dict.nav.focus, href: pathFor('focus', locale) },
+      { label: t.partnersGovernance, href: pathFor('partners', locale) },
+      { label: dict.nav.contact, href: pathFor('contact', locale) },
+    ],
+    soutenir: [
+      { label: dict.nav.joinAssociation, href: `${support}?formula=simple#don-mensuel` },
+      { label: dict.nav.donateMonthly, href: `${support}#don-mensuel` },
+      { label: t.donateOnce, href: `${support}?formula=simple#don-mensuel` },
+      { label: t.appointment, href: pathFor('appointment', locale) },
+      { label: t.memberArea, href: memberArea },
+    ],
+    legal: [
+      { label: t.legalNotice, href: '/legal/mentions-legales' },
+      { label: t.privacy, href: '/legal/confidentialite' },
+      { label: t.statutes, href: '/legal/statuts' },
+      { label: t.receipts, href: memberArea },
+    ],
+  }
 }
-
 const socialLinks = [
   { label: 'Facebook', href: 'https://facebook.com', icon: Facebook },
   { label: 'Twitter', href: 'https://twitter.com', icon: Twitter },
@@ -40,8 +54,11 @@ const socialLinks = [
   { label: 'YouTube', href: 'https://youtube.com', icon: Youtube },
 ]
 
-export function Footer() {
+export function Footer({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const currentYear = new Date().getFullYear()
+  const footerLinks = buildFooterLinks(dict, locale)
+  const t = dict.footer
+  const supportPath = pathFor('support', locale)
 
   return (
     <footer className="bg-warm-900 text-warm-200" role="contentinfo">
@@ -50,25 +67,23 @@ export function Footer() {
         <div className="container-custom py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-display font-bold text-white">
-              Soutenez notre mission
+              {t.ctaTitle}
             </h2>
-            <p className="text-white/85 mt-1">
-              Chaque don mensuel finance directement l&apos;intégration d&apos;une famille.
-            </p>
+            <p className="text-white/85 mt-1">{t.ctaText}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/adherer-soutenir#don-mensuel"
+              href={`${supportPath}#don-mensuel`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-600 font-semibold rounded-full hover:bg-warm-50 transition-colors shadow-sm"
             >
               <Heart className="w-4 h-4" />
-              Faire un don mensuel
+              {dict.nav.donateMonthly}
             </Link>
             <Link
-              href="/adherer-soutenir?formula=simple#don-mensuel"
+              href={`${supportPath}?formula=simple#don-mensuel`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-full hover:bg-white/25 transition-colors border border-white/30"
             >
-              Adhérer à l&apos;association
+              {dict.nav.joinAssociation}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -80,7 +95,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-3 group mb-5">
+            <Link href={pathFor('home', locale)} className="flex items-center gap-3 group mb-5">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
                 <Globe className="w-5 h-5 text-white" />
               </div>
@@ -93,8 +108,7 @@ export function Footer() {
             </Link>
 
             <p className="text-warm-400 text-sm leading-relaxed mb-6">
-              Association de droit local accompagnant les familles d&apos;Afrique de l&apos;Est
-              dans leur intégration en France depuis 2025.
+              {t.brandLine}
             </p>
 
             {/* Social links */}
@@ -139,7 +153,7 @@ export function Footer() {
           {/* L'association */}
           <div>
             <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">
-              L&apos;association
+              {t.associationTitle}
             </h3>
             <ul className="space-y-3">
               {footerLinks.association.map((link) => (
@@ -158,7 +172,7 @@ export function Footer() {
           {/* Nous soutenir */}
           <div>
             <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">
-              Nous soutenir
+              {t.supportTitle}
             </h3>
             <ul className="space-y-3">
               {footerLinks.soutenir.map((link) => (
@@ -177,11 +191,11 @@ export function Footer() {
             <div className="mt-6 p-3 bg-warm-800 rounded-xl">
               <p className="text-xs text-warm-400 mb-1 flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5 text-secondary-400" />
-                Paiement sécurisé via
+                {t.securePaymentVia}
               </p>
               <p className="text-sm font-semibold text-white">HelloAsso</p>
               <p className="text-xs text-warm-500 mt-1">
-                Reçu fiscal automatique chaque janvier
+                {t.receiptNote}
               </p>
             </div>
           </div>
@@ -189,7 +203,7 @@ export function Footer() {
           {/* Légal */}
           <div>
             <h3 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">
-              Informations légales
+              {t.legalTitle}
             </h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
@@ -208,11 +222,12 @@ export function Footer() {
             {/* Tax deduction info */}
             <div className="mt-6 p-3 bg-warm-800 border-2 border-secondary-500 rounded-xl">
               <p className="text-xs text-secondary-400 font-bold mb-1 uppercase tracking-wide">
-                Déduction fiscale
+                {t.taxTitle}
               </p>
               <p className="text-xs text-warm-400 leading-relaxed">
-                Vos dons sont déductibles à <strong className="text-white">66%</strong> de
-                votre impôt sur le revenu (art. 200 du CGI).
+                {t.taxTextBefore}
+                <strong className="text-white">66%</strong>
+                {t.taxTextAfter}
               </p>
             </div>
           </div>
@@ -227,7 +242,7 @@ export function Footer() {
             {' '}{ASSOCIATION_LEGAL_FORM_SHORT} • SIRET : {ASSOCIATION_SIRET}
           </p>
           <p className="text-warm-600 text-xs">
-            Fait en France • Données hébergées en Europe
+            {t.madeIn}
           </p>
         </div>
       </div>

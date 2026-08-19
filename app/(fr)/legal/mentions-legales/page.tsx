@@ -1,0 +1,100 @@
+import Link from 'next/link'
+import { JsonLd } from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo'
+import type { Metadata } from 'next'
+import { ChevronRight, FileText } from 'lucide-react'
+import {
+  ASSOCIATION_SIREN,
+  ASSOCIATION_SIRET,
+  ASSOCIATION_APE,
+  ASSOCIATION_APE_LABEL,
+  ASSOCIATION_ADDRESS,
+  ASSOCIATION_PRESIDENT,
+} from '@/lib/association'
+
+export const metadata: Metadata = {
+  title: 'Mentions légales',
+  description: 'Mentions légales de l\'Association Afrique de l\'Est et ses amis.',
+  alternates: { canonical: '/legal/mentions-legales' },
+}
+
+export default function MentionsLegalesPage() {
+  return (
+    <div className="min-h-screen bg-warm-50 py-12">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'Accueil', path: '/' },
+          { name: 'Mentions légales', path: '/legal/mentions-legales' },
+        ])}
+      />
+      <div className="container-custom max-w-4xl">
+        
+        {/* Breadcrumb */}
+        <nav aria-label="Fil d'Ariane" className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-warm-500">
+            <li><Link href="/" className="hover:text-primary-500 transition-colors">Accueil</Link></li>
+            <li><ChevronRight className="w-4 h-4" /></li>
+            <li className="text-warm-700 font-medium">Mentions Légales</li>
+          </ol>
+        </nav>
+
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-card border border-warm-100 space-y-6">
+          <div className="flex items-center gap-3 border-b border-warm-100 pb-6">
+            <FileText className="w-8 h-8 text-primary-500" />
+            <h1 className="font-display font-black text-3xl text-warm-900">Mentions Légales</h1>
+          </div>
+
+          <section className="space-y-3">
+            <h2 className="font-bold text-warm-900 text-lg">1. Éditeur du site</h2>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              Le présent site internet est édité par l&apos;<strong>Association Afrique de l&apos;Est et ses amis</strong>,
+              association de droit local régie par les articles 21 à 79-IV du Code civil local,
+              applicable dans les départements du Bas-Rhin, du Haut-Rhin et de la Moselle.
+            </p>
+            <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1">
+              <li><strong>SIREN :</strong> {ASSOCIATION_SIREN}</li>
+              <li><strong>SIRET (siège) :</strong> {ASSOCIATION_SIRET}</li>
+              <li><strong>Code APE :</strong> {ASSOCIATION_APE} — {ASSOCIATION_APE_LABEL}</li>
+              <li><strong>Siège social :</strong> {ASSOCIATION_ADDRESS}</li>
+              <li><strong>Email :</strong> {process.env.NEXT_PUBLIC_ASSOCIATION_EMAIL || 'asso.afrique.est.et.ses.amis@outlook.fr'}</li>
+              <li><strong>Directeur de la publication :</strong> {ASSOCIATION_PRESIDENT}, en sa qualité de Président de l&apos;association.</li>
+            </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-bold text-warm-900 text-lg">2. Hébergeur</h2>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              Le site est hébergé par la société <strong>Vercel Inc.</strong>, situé au :
+            </p>
+            <p className="text-warm-600 text-sm italic pl-5">
+              Vercel Inc. — 340 S Lemon Ave #4133 Walnut, CA 91789, USA.
+            </p>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              Les serveurs physiques de Vercel pour l&apos;Europe sont situés dans des datacenters respectueux des normes 
+              européennes de sécurité et de conformité RGPD (Irlande / Allemagne).
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-bold text-warm-900 text-lg">3. Propriété intellectuelle</h2>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              L&apos;ensemble des contenus (textes, graphismes, logos, images) présents sur ce site est, sauf mention contraire, 
+              la propriété exclusive de l&apos;Association Afrique de l&apos;Est et ses amis. Toute reproduction, distribution ou 
+              utilisation de ces éléments sans l&apos;accord écrit préalable de l&apos;association est strictement interdite.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-bold text-warm-900 text-lg">4. Limitation de responsabilité</h2>
+            <p className="text-warm-600 text-sm leading-relaxed">
+              L&apos;association s&apos;efforce de fournir des informations aussi précises que possible sur ce site. Cependant, 
+              elle ne pourra être tenue responsable des omissions, des inexactitudes et des carences dans la mise à jour, 
+              qu&apos;elles soient de son fait ou du fait des tiers partenaires qui lui fournissent ces informations.
+            </p>
+          </section>
+        </div>
+
+      </div>
+    </div>
+  )
+}

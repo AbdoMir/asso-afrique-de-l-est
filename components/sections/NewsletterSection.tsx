@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,22 +10,27 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
+import type { Dictionary } from '@/lib/dictionaries'
 
-const schema = z.object({
-  email: z.string().email('Adresse email invalide'),
-  first_name: z.string().optional(),
-  // `boolean` affiné plutôt que `literal(true)` : la case part décochée, le
-  // formulaire doit donc pouvoir représenter l'état « pas encore consenti ».
-  consent: z.boolean().refine((value) => value, {
-    message: 'Vous devez accepter de recevoir nos communications',
-  }),
-})
+type NewsletterDict = Dictionary['home']['newsletter']
 
-type FormData = z.infer<typeof schema>
+// Les messages d'erreur étant traduits, le schéma se construit à partir du
+// dictionnaire plutôt que d'être figé au chargement du module.
+const makeSchema = (dict: NewsletterDict) =>
+  z.object({
+    email: z.string().email(dict.errorEmail),
+    first_name: z.string().optional(),
+    // `boolean` affiné plutôt que `literal(true)` : la case part décochée, le
+    // formulaire doit donc pouvoir représenter l'état « pas encore consenti ».
+    consent: z.boolean().refine((value) => value, { message: dict.errorConsent }),
+  })
 
-export function NewsletterSection() {
+type FormData = z.infer<ReturnType<typeof makeSchema>>
+
+export function NewsletterSection({ dict }: { dict: NewsletterDict }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const schema = useMemo(() => makeSchema(dict), [dict])
 
   const {
     register,
@@ -57,22 +62,22 @@ export function NewsletterSection() {
       const result = await response.json()
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Une erreur est survenue.')
+        throw new Error(result.error || dict.errorGeneric)
       }
 
       setStatus('success')
       toast({
-        title: 'Inscription réussie ! 🎉',
-        description: 'Merci de vous être inscrit à notre newsletter.',
+        title: dict.toastSuccessTitle,
+        description: dict.toastSuccessText,
         variant: 'success',
       })
       reset()
     } catch (err: any) {
       setStatus('error')
-      setErrorMessage(err.message || 'Une erreur est survenue lors de l\'inscription.')
+      setErrorMessage(err.message || dict.errorGeneric)
       toast({
-        title: 'Erreur',
-        description: err.message || 'Impossible de vous inscrire pour le moment.',
+        title: dict.toastErrorTitle,
+        description: err.message || dict.toastErrorText,
         variant: 'error',
       })
     }
@@ -89,14 +94,13 @@ export function NewsletterSection() {
         <div className="max-w-4xl mx-auto text-center">
           <span className="section-badge bg-warm-800 text-warm-200 border border-warm-700">
             <Mail className="w-4 h-4 text-primary-400" />
-            Restez informé(e)
+            {dict.badge}
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-black mb-6">
-            Inscrivez-vous à notre <span className="gradient-text">lettre d&apos;information</span>
+            {dict.titleBefore} <span className="gradient-text">{dict.titleHighlight}</span>
           </h2>
           <p className="text-warm-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Recevez chaque mois les actualités de l&apos;association, nos prochains événements, 
-            et des témoignages inspirants sur l&apos;intégration des familles.
+            {dict.text}
           </p>
 
           <AnimatePresence mode="wait">
@@ -108,17 +112,15 @@ export function NewsletterSection() {
                 className="bg-warm-800/50 border border-secondary-500/30 rounded-3xl p-8 max-w-lg mx-auto text-center"
               >
                 <CheckCircle2 className="w-16 h-16 text-secondary-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-2">Bienvenue à bord !</h3>
-                <p className="text-warm-300 mb-6">
-                  Votre inscription a été validée avec succès. Vous recevrez très bientôt notre prochain email.
-                </p>
+                <h3 className="text-2xl font-bold mb-2">{dict.successTitle}</h3>
+                <p className="text-warm-300 mb-6">{dict.successText}</p>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setStatus('idle')}
                   className="border-warm-600 text-warm-200 hover:bg-warm-800"
                 >
-                  Inscrire une autre adresse
+                  {dict.another}
                 </Button>
               </motion.div>
             ) : (
@@ -133,7 +135,7 @@ export function NewsletterSection() {
                   <div className="flex-1">
                     <Input
                       type="text"
-                      placeholder="Votre prénom (facultatif)"
+                      placeholder={dict.firstNamePlaceholder}
                       className="bg-warm-800/80 border-warm-700 text-white placeholder-warm-500 focus:ring-primary-500 focus:border-transparent rounded-xl"
                       {...register('first_name')}
                     />
@@ -141,7 +143,7 @@ export function NewsletterSection() {
                   <div className="flex-[2]">
                     <Input
                       type="email"
-                      placeholder="Votre adresse email"
+                      placeholder={dict.emailPlaceholder}
                       required
                       error={errors.email?.message}
                       className="bg-warm-800/80 border-warm-700 text-white placeholder-warm-500 focus:ring-primary-500 focus:border-transparent rounded-xl"
@@ -157,7 +159,7 @@ export function NewsletterSection() {
                       rightIcon={<ArrowRight className="w-4 h-4" />}
                       className="w-full whitespace-nowrap py-3 px-6 rounded-xl"
                     >
-                      S&apos;inscrire
+                      {dict.submit}
                     </Button>
                   </div>
                 </div>
@@ -170,8 +172,7 @@ export function NewsletterSection() {
                     {...register('consent')}
                   />
                   <label htmlFor="consent" className="text-xs text-warm-400 leading-normal cursor-pointer select-none">
-                    J&apos;accepte de recevoir des emails d&apos;information de l&apos;Association Afrique de l&apos;Est. 
-                    Vous pouvez vous désinscrire à tout moment à l&apos;aide des liens de désinscription.
+                    {dict.consent}
                   </label>
                 </div>
                 {errors.consent && (
@@ -182,8 +183,8 @@ export function NewsletterSection() {
                 )}
 
                 <PrivacyNotice
-                  purpose="pour vous envoyer notre newsletter"
-                  retention="jusqu'à votre désinscription"
+                  purpose={dict.privacyPurpose}
+                  retention={dict.privacyRetention}
                   tone="dark"
                   className="mt-4"
                 />

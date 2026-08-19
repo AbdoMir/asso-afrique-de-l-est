@@ -2,66 +2,44 @@
 
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { ArrowRight, BookOpen, Home, Trophy, Compass } from 'lucide-react'
+import { pathFor, type Locale } from '@/lib/i18n'
+import type { Dictionary } from '@/lib/dictionaries'
+
+type ActionsDict = Dictionary['home']['actions']
 
 const ACTIONS = [
   {
-    id: '1',
-    title: 'Accueil et orientation administrative',
-    description:
-      'Un accompagnement personnalisé pour comprendre et remplir les documents officiels : titre de séjour, allocations, scolarisation, accès aux soins.',
-    status: 'active',
     beneficiaries: 154,
     icon: Home,
     color: 'bg-secondary-500',
-    tags: ['Administratif', 'Toutes situations'],
-    href: '/nos-actions',
     image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
-    id: '2',
-    title: 'Cours de français intensifs (FLE)',
-    description:
-      'Des cours hebdomadaires de français langue étrangère pour adultes, animés par des bénévoles certifiés. Tous niveaux acceptés, de l\'alphabet aux situations professionnelles.',
-    status: 'active',
     beneficiaries: 87,
     icon: BookOpen,
     color: 'bg-primary-500',
-    tags: ['FLE', 'Adultes', 'Hebdomadaire'],
-    href: '/nos-actions',
     image: 'https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
-    id: '3',
-    title: 'Intégration par le sport',
-    description:
-      'Des activités sportives collectives pour les jeunes de 5 à 20 ans : un vecteur de cohésion, de dépassement de soi et d\'intégration durable.',
-    status: 'active',
     beneficiaries: 65,
     icon: Trophy,
     color: 'bg-accent-600',
-    tags: ['Sport', '5-20 ans'],
-    href: '/nos-actions',
     image: 'https://images.unsplash.com/photo-1598880513655-d1c6d4b2dfbf?auto=format&fit=crop&q=80&w=600&h=400',
   },
   {
-    id: '4',
-    title: 'Autonomie',
-    description:
-      'Un accompagnement global vers une insertion citoyenne et professionnelle complète, pour que chacun devienne pleinement acteur de son parcours en France.',
-    status: 'active',
     beneficiaries: 120,
     icon: Compass,
     color: 'bg-warm-700',
-    tags: ['Insertion', 'Citoyenneté'],
-    href: '/nos-actions',
     image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=600&h=400',
   },
 ]
 
-export function ActionsPreview() {
+export function ActionsPreview({ dict, locale }: { dict: ActionsDict; locale: Locale }) {
+  const href = pathFor('actions', locale)
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.15 })
 
@@ -74,9 +52,9 @@ export function ActionsPreview() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
           >
-            <span className="section-badge">Nos actions</span>
+            <span className="section-badge">{dict.badge}</span>
             <h2 id="actions-heading" className="section-title mb-0">
-              Ce que nous faisons concrètement
+              {dict.title}
             </h2>
           </motion.div>
 
@@ -86,29 +64,33 @@ export function ActionsPreview() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Link
-              href="/nos-actions"
+              href={href}
               className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold transition-colors"
             >
-              Toutes nos actions <ArrowRight className="w-4 h-4" />
+              {dict.link} <ArrowRight className="w-4 h-4" />
             </Link>
           </motion.div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {ACTIONS.map((action, i) => (
+          {ACTIONS.map((action, i) => {
+            const text = dict.items[i]
+            return (
             <motion.div
-              key={action.id}
+              key={text.title}
               initial={{ opacity: 0, y: 32 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
-              <Link href={action.href} className="block card-hover overflow-hidden group h-full">
+              <Link href={href} className="block card-hover overflow-hidden group h-full">
                 {/* Photo + icon overlapping bottom-left */}
                 <div className="relative aspect-[3/2] -m-px mb-0 overflow-hidden">
-                  <img
+                  <Image
                     src={action.image}
-                    alt={action.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    alt={text.title}
+                    fill
+                    sizes="(min-width: 1024px) 23vw, (min-width: 768px) 46vw, 100vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className={`absolute -bottom-5 left-5 w-12 h-12 blob-3 ${action.color} flex items-center justify-center shadow-card`}>
                     <action.icon className="w-6 h-6 text-white" />
@@ -120,23 +102,23 @@ export function ActionsPreview() {
                   <div className="flex items-center gap-2 mb-3">
                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary-600 bg-secondary-50 px-2 py-1 rounded-full">
                       <span className="w-1.5 h-1.5 rounded-full bg-secondary-500 animate-pulse" />
-                      En cours
+                      {dict.ongoing}
                     </span>
                     <span className="text-xs text-warm-400">
-                      {action.beneficiaries} bénéficiaires
+                      {action.beneficiaries} {dict.beneficiaries}
                     </span>
                   </div>
 
                   <h3 className="font-bold text-warm-900 text-lg mb-3 leading-snug">
-                    {action.title}
+                    {text.title}
                   </h3>
                   <p className="text-warm-600 text-sm leading-relaxed mb-4">
-                    {action.description}
+                    {text.description}
                   </p>
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
-                    {action.tags.map((tag) => (
+                    {text.tags.map((tag) => (
                       <span
                         key={tag}
                         className="px-2.5 py-1 text-xs font-medium text-warm-600 bg-warm-100 rounded-full"
@@ -148,7 +130,8 @@ export function ActionsPreview() {
                 </div>
               </Link>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

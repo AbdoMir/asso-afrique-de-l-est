@@ -3,72 +3,31 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { BookOpen, Users, Briefcase, Languages, Heart, Calendar } from 'lucide-react'
+import { LOCALE_TAGS, type Locale } from '@/lib/i18n'
+import type { Dictionary } from '@/lib/dictionaries'
 
+type ImpactDict = Dictionary['home']['impact']
+
+/** Chiffres et habillage seulement : les libellés viennent du dictionnaire. */
 const STATS = [
-  {
-    value: 15,
-    suffix: ' mois',
-    label: 'de cours FLE financés',
-    icon: BookOpen,
-    color: 'text-primary-500',
-    iconBg: 'bg-primary-100',
-    description: 'Cours de français langue étrangère pour adultes',
-  },
-  {
-    value: 120,
-    suffix: '',
-    label: 'familles accompagnées',
-    icon: Users,
-    color: 'text-secondary-500',
-    iconBg: 'bg-secondary-100',
-    description: 'Depuis la création de l\'association',
-  },
-  {
-    value: 89,
-    suffix: '%',
-    label: 'taux d\'insertion emploi',
-    icon: Briefcase,
-    color: 'text-accent-600',
-    iconBg: 'bg-accent-100',
-    description: 'Des personnes accompagnées ont trouvé un emploi',
-  },
-  {
-    value: 1240,
-    suffix: '',
-    label: 'traductions réalisées',
-    icon: Languages,
-    color: 'text-purple-500',
-    iconBg: 'bg-purple-50',
-    description: 'Documents officiels, médecins, écoles',
-  },
-  {
-    value: 65,
-    suffix: '+',
-    label: 'jeunes accompagnés',
-    icon: Heart,
-    color: 'text-pink-500',
-    iconBg: 'bg-pink-50',
-    description: 'Soutien scolaire et activités culturelles',
-  },
-  {
-    value: 1,
-    suffix: ' an',
-    label: 'au service des familles',
-    icon: Calendar,
-    color: 'text-blue-500',
-    iconBg: 'bg-blue-50',
-    description: 'Association fondée en 2025',
-  },
+  { value: 15, icon: BookOpen, color: 'text-primary-500', iconBg: 'bg-primary-100' },
+  { value: 120, icon: Users, color: 'text-secondary-500', iconBg: 'bg-secondary-100' },
+  { value: 89, icon: Briefcase, color: 'text-accent-600', iconBg: 'bg-accent-100' },
+  { value: 1240, icon: Languages, color: 'text-purple-500', iconBg: 'bg-purple-50' },
+  { value: 65, icon: Heart, color: 'text-pink-500', iconBg: 'bg-pink-50' },
+  { value: 1, icon: Calendar, color: 'text-blue-500', iconBg: 'bg-blue-50' },
 ]
 
 function AnimatedCounter({
   value,
   suffix,
   isVisible,
+  localeTag,
 }: {
   value: number
   suffix: string
   isVisible: boolean
+  localeTag: string
 }) {
   const [count, setCount] = useState(0)
 
@@ -98,13 +57,14 @@ function AnimatedCounter({
 
   return (
     <span>
-      {count.toLocaleString('fr-FR')}
+      {count.toLocaleString(localeTag)}
       {suffix}
     </span>
   )
 }
 
-export function ImpactSection() {
+export function ImpactSection({ dict, locale }: { dict: ImpactDict; locale: Locale }) {
+  const localeTag = LOCALE_TAGS[locale]
   const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
 
@@ -118,21 +78,20 @@ export function ImpactSection() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <span className="section-badge">Notre impact</span>
+          <span className="section-badge">{dict.badge}</span>
           <h2 id="impact-heading" className="section-title">
-            Des chiffres qui parlent
+            {dict.title}
           </h2>
-          <p className="section-subtitle mx-auto">
-            Chaque don se traduit en actions concrètes pour les familles 
-            que nous accompagnons au quotidien.
-          </p>
+          <p className="section-subtitle mx-auto">{dict.subtitle}</p>
         </motion.div>
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
-          {STATS.map((stat, i) => (
+          {STATS.map((stat, i) => {
+            const text = dict.stats[i]
+            return (
             <motion.div
-              key={stat.label}
+              key={text.label}
               initial={{ opacity: 0, y: 32 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.08 }}
@@ -147,21 +106,23 @@ export function ImpactSection() {
                 <div className={`impact-counter ${stat.color} mb-1`}>
                   <AnimatedCounter
                     value={stat.value}
-                    suffix={stat.suffix}
+                    suffix={text.suffix}
                     isVisible={isInView}
+                    localeTag={localeTag}
                   />
                 </div>
 
                 {/* Label */}
                 <p className="font-semibold text-warm-900 text-base md:text-lg mb-1">
-                  {stat.label}
+                  {text.label}
                 </p>
                 <p className="text-warm-500 text-sm leading-snug hidden md:block">
-                  {stat.description}
+                  {text.description}
                 </p>
               </div>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Quote */}
@@ -172,11 +133,10 @@ export function ImpactSection() {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <p className="text-lg md:text-xl text-warm-700 italic leading-relaxed">
-            &quot;Derrière chaque chiffre, il y a une famille qui a trouvé sa place en France,
-            un enfant qui a progressé à l&apos;école, un parent qui a décroché un emploi.&quot;
+            &quot;{dict.quote}&quot;
           </p>
           <footer className="mt-3 text-warm-500 text-sm font-medium">
-            — L&apos;équipe de l&apos;association
+            {dict.quoteAuthor}
           </footer>
         </motion.blockquote>
       </div>

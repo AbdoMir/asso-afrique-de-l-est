@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Association Afrique de l'Est et ses amis">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8702A"/>
+      <stop offset="1" stop-color="#F4A935"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <path d="M32 47c-1 0-1.9-.4-2.6-1L18.7 35.6a10.2 10.2 0 0 1 0-14.6 10.7 10.7 0 0 1 15 0l-1.7 1.7 1.7-1.7a10.7 10.7 0 0 1 15 0 10.2 10.2 0 0 1 0 14.6L34.6 46c-.7.6-1.6 1-2.6 1z" fill="#fff"/>
+</svg>
