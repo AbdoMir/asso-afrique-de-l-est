@@ -35,8 +35,9 @@ function MerciContent() {
         Merci pour votre soutien !
       </h1>
       <p className="text-warm-500 mb-6">
-        HelloAsso vous envoie la confirmation de votre paiement ainsi que votre
-        reçu fiscal CERFA, à l&apos;adresse email utilisée lors du règlement.
+        Stripe vous envoie la confirmation de votre paiement. Votre reçu fiscal
+        CERFA, lui, vous sera adressé par l&apos;association en janvier : il
+        couvrira le total de vos dons de l&apos;année.
       </p>
       <div className="flex gap-3 justify-center">
         <Link href="/">

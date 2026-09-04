@@ -23,7 +23,18 @@ export type Profile = {
 export type MembershipType = 'simple' | 'monthly_5' | 'monthly_10' | 'monthly_20'
 export type MembershipStatus = 'active' | 'expired' | 'cancelled' | 'pending'
 export type DonationFrequency = 'once' | 'monthly'
-export type PaymentMethod = 'bank_transfer' | 'cash_check' | 'helloasso'
+/**
+ * Reflète l'énumération `payment_method` de la migration 002, qui connaissait
+ * déjà la carte et le prélèvement SEPA. Le type ne les déclarait pas : tant que
+ * seul HelloAsso encaissait, l'écart ne se voyait pas.
+ */
+export type PaymentMethod =
+  | 'card'
+  | 'sepa_debit'
+  | 'paypal'
+  | 'bank_transfer'
+  | 'cash_check'
+  | 'helloasso'
 
 export type Membership = {
   id: string
@@ -32,25 +43,15 @@ export type Membership = {
   status: MembershipStatus
   amount: number
   frequency: DonationFrequency
+  /** Conservé pour les adhésions antérieures au passage à Stripe. */
   helloasso_ref?: string
+  stripe_subscription_id?: string
+  stripe_customer_id?: string
   payment_method?: PaymentMethod
   date_start: string
   date_end?: string
   created_at: string
   updated_at: string
-}
-
-export interface MembershipFormula {
-  id: MembershipType
-  label: string
-  amount: number
-  frequency: DonationFrequency
-  description: string
-  benefits: string[]
-  provider: 'helloasso'
-  highlighted?: boolean
-  badge?: string
-  color: string
 }
 
 // ─── Donations ─────────────────────────────────────────────────────────────────
@@ -63,11 +64,18 @@ export type Donation = {
   amount: number
   frequency: DonationFrequency
   status: DonationStatus
+  /** Clé d'idempotence du webhook Stripe — index unique depuis la migration 001. */
+  stripe_payment_intent_id?: string
+  stripe_subscription_id?: string
+  /** Conservés pour les dons antérieurs au passage à Stripe. */
   helloasso_order_id?: string
-  /** Identifiant du paiement HelloAsso — clé d'idempotence du webhook. */
   helloasso_payment_id?: string
   donor_name?: string
   donor_email?: string
+  /** Adresse au moment du versement : c'est elle qui figure sur le reçu CERFA. */
+  donor_address?: string
+  donor_city?: string
+  donor_zip_code?: string
   payment_method?: PaymentMethod
   membership_id?: string
   created_at: string
@@ -388,6 +396,17 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      /**
+       * Attribue le prochain numéro de reçu fiscal de l'exercice, au format
+       * AAAA-NNNN (migration 016). Réservée au rôle de service : l'exécution
+       * est révoquée pour `anon` et `authenticated`, un appel libre permettant
+       * de brûler des numéros et de trouer la série.
+       */
+      next_cerfa_number: {
+        Args: { annee: number }
+        Returns: string
+      }
+    }
   }
 }

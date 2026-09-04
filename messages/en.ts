@@ -232,7 +232,7 @@ export const en: Dictionary = {
       titleHighlight: 'the integration of families',
       text: 'Your regular monthly gift funds our French classes (FLE), homework help for young people, employment guidance and social translation services over the long term. You give stability, and hope.',
       guarantee1: '66% tax-deductible • Annual tax receipt issued automatically',
-      guarantee2: 'Secure HelloAsso payment • Cancel any time',
+      guarantee2: 'Secure Stripe payment • Cancel any time',
       chooseTitle: 'Choose how you help:',
       popular: 'Popular',
       seeAll: 'See all the options',
@@ -570,11 +570,11 @@ export const en: Dictionary = {
       heroStats: [
         { value: '€5', label: 'per month', sub: 'to get started' },
         { value: '66%', label: 'deductible', sub: 'from income tax' },
-        { value: '100%', label: 'secure', sub: 'HelloAsso' },
+        { value: '100%', label: 'secure', sub: 'Stripe' },
       ],
       guarantees: [
-        { title: '100% secure payment', description: 'HelloAsso secures every transaction.' },
-        { title: 'Automatic tax receipt', description: 'HelloAsso sends your CERFA 11580*03 receipt.' },
+        { title: '100% secure payment', description: 'Stripe secures every transaction.' },
+        { title: 'Automatic tax receipt', description: 'The association sends your CERFA 11580*03 receipt each January.' },
         { title: 'Cancel in one click', description: 'Stop your monthly gift at any time, no commitment.' },
         { title: '66% deductible', description: 'Your donations are 66% deductible from French income tax.' },
       ],
@@ -620,7 +620,7 @@ export const en: Dictionary = {
       faqs: [
         {
           q: 'How do I get my tax receipt?',
-          a: 'Payments are collected by HelloAsso, which issues and emails your tax receipt (CERFA 11580*03) automatically, to the address used at payment. You can also find it any time in your HelloAsso account, under “My payments”.',
+          a: 'The association issues your tax receipt (CERFA 11580*03) each January and emails it to you. It covers the total of your donations for the past year. You can also find it any time in your member area, under “My tax receipts”.',
         },
         {
           q: 'How do I cancel my monthly gift?',
@@ -628,7 +628,7 @@ export const en: Dictionary = {
         },
         {
           q: 'Is my data secure?',
-          a: 'Yes. Your personal and banking data is protected under the GDPR. Payments are handled by HelloAsso, which is PCI-DSS certified. We never store your banking details.',
+          a: 'Yes. Your personal and banking data is protected under the GDPR. Payments are handled by Stripe, certified PCI-DSS Level 1. Your card number never passes through our servers and we store it nowhere.',
         },
         {
           q: 'Can I change the amount I give?',
@@ -642,7 +642,7 @@ export const en: Dictionary = {
       altBadge: 'Other ways to pay',
       altTitle: 'Other ways to support us',
       altSubtitle:
-        'Besides paying online through HelloAsso, you can also support us by bank transfer or in person.',
+        'Besides paying online by card or SEPA direct debit, you can also support us by bank transfer or in person.',
       transferTitle: 'Bank transfer',
       transferText:
         'Best suited to larger annual gifts. Put your name and email in the reference so that we can send you your tax receipt.',
@@ -705,31 +705,16 @@ export const en: Dictionary = {
         step1Subtitle: 'Annual membership or a recurring monthly gift — every contribution counts.',
         perMonth: '/month',
         perYear: '/year',
-        viaHelloAsso: 'via HelloAsso',
+        viaStripe: 'via Stripe',
         monthlyLabel: 'per month',
         yearlyLabel: 'once a year',
         secureLine: 'Secure payment — 66% tax-deductible',
         continueWithFormula: 'Continue with this plan',
         step2Title: 'Your details',
         step2Subtitle: 'We need these for your tax receipt and your membership card.',
-        firstName: 'First name',
-        lastName: 'Surname',
-        email: 'Email',
-        phone: 'Phone',
-        address: 'Address',
-        zipCode: 'Postcode',
-        city: 'Town or city',
-        comment: 'Message (optional)',
-        commentPlaceholder: 'A message for the association, a question…',
         acceptStatutes: 'I accept the association’s statutes',
         readStatutes: 'Read the statutes',
         readStatutesSuffix: 'of Association Afrique de l’Est et ses amis',
-        sepaTitle: 'SEPA direct debit mandate',
-        sepaTextBefore:
-          'I authorise Association Afrique de l’Est et ses amis (SEPA creditor) to instruct my bank to debit my account by ',
-        sepaTextAfter:
-          ' each month. This mandate complies with the European payment services directive (PSD2). I can revoke it at any time.',
-        sepaRequired: 'Required for monthly gifts',
         newsletterLabel:
           'I would like to receive the association’s newsletter (news, events, stories)',
         back: '← Back',
@@ -743,24 +728,13 @@ export const en: Dictionary = {
         debitNoteBefore: '💡 You will be charged ',
         debitNoteAfter:
           ', all of which goes to the association. A CERFA tax receipt will let you deduct 66% of that amount from your income tax at your next return.',
-        paymentVia: 'Payment via HelloAsso',
-        redirectNote: 'You will be redirected to the HelloAsso platform',
-        accountEmailBefore: 'On HelloAsso, please pay using the address ',
-        accountEmailAfter:
-          ' — it is what links your payment to your member area. With a different address the gift will be recorded but will not appear in your account.',
+        paymentVia: 'Payment via Stripe',
+        redirectNote: 'You will be redirected to the secure Stripe payment page',
         sslNote: 'Secure SSL/TLS connection',
         pciNote: 'PCI-DSS certified — no banking data stored',
-        cerfaNote: 'CERFA tax receipt issued automatically by HelloAsso',
-        payButton: 'Pay via HelloAsso',
-        errorFirstName: 'First name required (at least 2 characters)',
-        errorLastName: 'Surname required (at least 2 characters)',
-        errorEmail: 'Invalid email address',
-        errorAddress: 'Address required',
-        errorCity: 'Town or city required',
-        errorZip: 'Invalid postcode (5 digits)',
+        cerfaNote: 'CERFA tax receipt sent by the association each January',
+        payButton: 'Proceed to payment',
         errorStatutes: 'You must accept the association’s statutes',
-        toastSepaTitle: 'SEPA mandate required',
-        toastSepaText: 'Please accept the SEPA direct debit mandate to continue.',
         toastUnavailableTitle: 'Payment temporarily unavailable',
         toastUnavailableText:
           'The payment form is not configured yet. Please contact us directly.',

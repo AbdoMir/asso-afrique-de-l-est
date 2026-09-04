@@ -19,6 +19,15 @@ const appointmentDateTimeFmt = new Intl.DateTimeFormat('fr-FR', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
 })
 
+/** Ligne de `fiscal_receipts` telle que l'onglet des reçus la consomme. */
+type ReceiptRow = {
+  id: string
+  cerfa_number: string
+  year: number
+  total_amount: number
+  sent_at: string | null
+}
+
 export default function MemberDashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'donations' | 'receipts' | 'rdv' | 'profile'>('overview')
@@ -26,6 +35,7 @@ export default function MemberDashboard() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [donations, setDonations] = useState<any[]>([])
+  const [receipts, setReceipts] = useState<ReceiptRow[]>([])
   const [membership, setMembership] = useState<any>(null)
   const [appointments, setAppointments] = useState<any[]>([])
   const [externalAppointments, setExternalAppointments] = useState<any[]>([])
@@ -178,8 +188,14 @@ export default function MemberDashboard() {
           setDonations(donData)
         }
 
-        // Les reçus fiscaux CERFA sont édités et envoyés par HelloAsso :
-        // rien à charger ici, l'onglet renvoie vers le compte HelloAsso.
+        // Reçus fiscaux, désormais émis par l'association elle-même. La policy
+        // RLS de `fiscal_receipts` restreint déjà la lecture aux siens.
+        const { data: receiptData } = await supabase
+          .from('fiscal_receipts')
+          .select('id, cerfa_number, year, total_amount, sent_at')
+          .order('year', { ascending: false })
+
+        if (receiptData) setReceipts(receiptData as ReceiptRow[])
 
         // Rendez-vous extérieurs saisis par l'association. La policy RLS
         // restreint déjà la lecture à ceux de la personne connectée.
@@ -477,16 +493,33 @@ export default function MemberDashboard() {
     }
   }
 
-  // Les dons récurrents sont gérés par HelloAsso : c'est depuis son compte
-  // HelloAsso que le donateur suspend ou résilie son prélèvement. L'association
-  // n'a pas la main dessus.
+  // Modifier son montant, changer de carte ou résilier se fait dans le portail
+  // de facturation Stripe. C'est lui qui tient la promesse de « résiliation en
+  // un clic » affichée sur la page de dons, sans que l'association ait à
+  // héberger un écran de gestion d'abonnement — ni les données bancaires qui
+  // vont avec.
   const handleCancelSubscription = async () => {
-    const confirm = window.confirm(
-      'La gestion de votre don mensuel se fait depuis votre compte HelloAsso. Vous allez y être redirigé. Continuer ?'
-    )
-    if (!confirm) return
+    try {
+      const response = await fetch('/api/stripe/portail', { method: 'POST' })
+      const result = await response.json()
 
-    window.open('https://www.helloasso.com/mon-compte/adhesions-et-dons', '_blank', 'noopener,noreferrer')
+      if (!response.ok || !result.url) {
+        toast({
+          title: 'Gestion indisponible',
+          description: result.error || 'Merci de réessayer dans un instant.',
+          variant: 'error',
+        })
+        return
+      }
+
+      window.location.assign(result.url)
+    } catch {
+      toast({
+        title: 'Gestion indisponible',
+        description: 'Merci de réessayer dans un instant.',
+        variant: 'error',
+      })
+    }
   }
 
   const handleCancelAppointment = async (appointmentId: string) => {
@@ -815,8 +848,10 @@ export default function MemberDashboard() {
                   className="space-y-6"
                 >
                   <div>
-                    <h3 className="font-display font-black text-2xl text-warm-900">Mes Reçus Fiscaux</h3>
-                    <p className="text-warm-500 text-sm">Vos reçus CERFA sont émis par HelloAsso</p>
+                    <h3 className="font-display font-black text-2xl text-warm-900">Mes reçus fiscaux</h3>
+                    <p className="text-warm-500 text-sm">
+                      Un reçu CERFA par année, émis chaque janvier par l&apos;association
+                    </p>
                   </div>
 
                   {/* Deduction box info */}
@@ -831,35 +866,59 @@ export default function MemberDashboard() {
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-2xl border border-warm-200 bg-white space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0">
-                        <FileText className="w-5 h-5 text-primary-500" />
+                  {receipts.length === 0 ? (
+                    <div className="p-5 rounded-2xl border border-warm-200 bg-white space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0">
+                          <FileText className="w-5 h-5 text-primary-500" />
+                        </div>
+                        <p className="font-bold text-warm-900">Aucun reçu pour l&apos;instant</p>
                       </div>
-                      <p className="font-bold text-warm-900">Où trouver vos reçus ?</p>
+                      <p className="text-sm text-warm-600 leading-relaxed">
+                        Les reçus sont établis en janvier pour l&apos;année écoulée. Si vous avez
+                        donné cette année, le vôtre vous parviendra en janvier prochain — par
+                        email, et il apparaîtra ici.
+                      </p>
+                      <p className="text-xs text-warm-400 leading-relaxed pt-1">
+                        Un doute sur un versement ? Écrivez-nous, nous vérifierons.
+                      </p>
                     </div>
-                    <p className="text-sm text-warm-600 leading-relaxed">
-                      Vos paiements étant encaissés par HelloAsso, c&apos;est HelloAsso qui édite et
-                      vous envoie directement votre reçu fiscal CERFA 11580*03 par email, à l&apos;adresse
-                      utilisée lors du paiement.
-                    </p>
-                    <p className="text-sm text-warm-600 leading-relaxed">
-                      Vous les retrouvez également à tout moment depuis votre compte HelloAsso,
-                      rubrique <span className="font-semibold">« Mes paiements »</span>.
-                    </p>
-                    <a
-                      href="https://www.helloasso.com/mon-compte/paiements"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3.5 py-2 rounded-lg transition-colors"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      Accéder à mes reçus HelloAsso
-                    </a>
-                    <p className="text-xs text-warm-400 leading-relaxed pt-1">
-                      Vous ne retrouvez pas un reçu ? Contactez-nous, nous ferons le nécessaire auprès de HelloAsso.
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {receipts.map((receipt) => (
+                        <div
+                          key={receipt.id}
+                          className="p-5 rounded-2xl border border-warm-200 bg-white flex items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0">
+                              <FileText className="w-5 h-5 text-primary-500" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-warm-900">
+                                Année {receipt.year} —{' '}
+                                {Number(receipt.total_amount).toFixed(2).replace('.', ',')} €
+                              </p>
+                              <p className="text-xs text-warm-500">
+                                Reçu n° {receipt.cerfa_number}
+                                {receipt.sent_at ? ' • envoyé par email' : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Le PDF est régénéré à la demande : aucun fichier
+                              n'est conservé côté serveur. */}
+                          <a
+                            href={`/api/compte/recus/${receipt.id}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-500 hover:text-primary-600 bg-primary-50 hover:bg-primary-100 px-3.5 py-2 rounded-lg transition-colors shrink-0"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Télécharger
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </motion.div>
               )}
 

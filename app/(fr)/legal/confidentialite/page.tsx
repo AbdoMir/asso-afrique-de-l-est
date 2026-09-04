@@ -30,7 +30,7 @@ const RETENTIONS = [
 
 const PROCESSORS = [
   ['Supabase', 'Base de données et comptes adhérents', '🇪🇺 Suède'],
-  ['HelloAsso', 'Paiement des adhésions et dons, édition des reçus CERFA', '🇫🇷 France'],
+  ['Stripe Payments Europe', 'Paiement des adhésions et dons', '🇮🇪 Irlande'],
   ['Vercel', 'Hébergement du site et mesure d\'audience', '🇺🇸 États-Unis'],
   ['Resend', 'Envoi des emails (confirmations, notifications)', '🇺🇸 États-Unis'],
   ['Upstash', 'Compteurs anti-abus (adresse IP, 10 minutes)', '🇺🇸 États-Unis'],
@@ -83,8 +83,11 @@ export default function ConfidentialitePage() {
             <ul className="text-warm-600 text-sm list-disc pl-5 space-y-1.5">
               <li>
                 <strong>Adhésion et dons</strong> : nom, prénom, email, téléphone, adresse
-                postale, montants et dates. Les paiements sont traités par HelloAsso :
-                nous ne voyons ni ne stockons aucun numéro de carte ni coordonnée bancaire.
+                postale, montants et dates. Les paiements sont traités par Stripe, sur
+                ses propres pages : aucun numéro de carte ni coordonnée bancaire ne
+                transite par nos serveurs, et nous n&apos;en conservons aucun. L&apos;adresse
+                postale nous est transmise par Stripe parce que le reçu fiscal CERFA
+                l&apos;exige.
               </li>
               <li>
                 <strong>Formulaire de contact</strong> : nom, email, téléphone facultatif,

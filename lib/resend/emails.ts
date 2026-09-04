@@ -75,8 +75,8 @@ export async function sendWelcomeEmail(params: {
             </p>
             <div style="background:#F5F0E8;padding:16px;border-radius:8px;margin:24px 0;">
               <p style="margin:0;color:#666;font-size:14px;">
-                📄 Votre reçu fiscal (CERFA 11580*03) vous est envoyé par HelloAsso,
-                à l'adresse email utilisée lors de votre paiement.
+                📄 Votre reçu fiscal (CERFA 11580*03) vous sera envoyé en janvier
+                par l'association. Il couvrira le total de vos dons de l'année.
               </p>
             </div>
             <a href="${process.env.NEXT_PUBLIC_APP_URL}/espace-adherent" 
@@ -95,9 +95,9 @@ export async function sendWelcomeEmail(params: {
   })
 }
 
-// Les reçus fiscaux CERFA sont édités et envoyés directement par HelloAsso,
-// qui encaisse les paiements. L'association n'en émet pas en parallèle : deux
-// reçus pour un même don exposeraient le donateur à une double déduction.
+// Les reçus fiscaux CERFA sont désormais édités par l'association elle-même —
+// voir sendTaxReceipt en fin de fichier et le cron /api/cron/recus-fiscaux.
+// Stripe encaisse, mais n'établit aucun document fiscal français.
 
 // ─── Appointment Confirmation Email ─────────────────────────────────────────────
 
@@ -345,6 +345,63 @@ export async function sendNewsletterConfirmation(params: {
       <p style="color:#666;font-size:14px;">
         Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce
         message : sans confirmation de votre part, aucune newsletter ne vous sera envoyée.
+      </p>
+    `,
+  })
+}
+
+// ─── Reçu fiscal ───────────────────────────────────────────────────────────────
+
+/**
+ * Envoi du reçu fiscal CERFA, en pièce jointe.
+ *
+ * Du temps de HelloAsso, cet email partait de chez eux. L'association l'émet
+ * désormais elle-même : c'est la contrepartie du passage à Stripe, qui
+ * encaisse mais n'établit aucun document fiscal français.
+ *
+ * Le PDF transite en mémoire, sans jamais être écrit ni stocké : il se
+ * reconstruit à l'identique depuis la ligne `fiscal_receipts` (cf. migration
+ * 016), et l'espace adhérent le régénère à la demande.
+ */
+export async function sendTaxReceipt(params: {
+  to: string
+  firstName?: string
+  year: number
+  amount: number
+  cerfaNumber: string
+  pdf: Uint8Array
+}) {
+  const montant = params.amount.toFixed(2).replace('.', ',')
+
+  return getResend().emails.send({
+    from: from(),
+    to: params.to,
+    subject: `Votre reçu fiscal ${params.year} — Association Afrique de l'Est et ses amis`,
+    attachments: [
+      {
+        filename: `recu-fiscal-${params.cerfaNumber}.pdf`,
+        content: Buffer.from(params.pdf),
+      },
+    ],
+    html: `
+      <p>Bonjour${params.firstName ? ` ${escapeHtml(params.firstName)}` : ''},</p>
+      <p>
+        Vous trouverez ci-joint votre reçu fiscal pour l'année ${params.year},
+        d'un montant de <strong>${montant} €</strong>.
+      </p>
+      <p>
+        Ce document vous permet de déduire <strong>66 %</strong> de cette somme
+        de votre impôt sur le revenu, dans la limite de 20 % de votre revenu
+        imposable (article 200 du CGI). Conservez-le : il vous sera demandé en
+        cas de contrôle.
+      </p>
+      <p>
+        Vous le retrouvez à tout moment dans votre espace adhérent, rubrique
+        « Mes reçus fiscaux ».
+      </p>
+      <p style="color:#666;font-size:14px;">
+        Merci pour votre soutien. Chaque euro versé finance des cours de
+        français, du soutien scolaire et de l'accompagnement vers l'emploi.
       </p>
     `,
   })

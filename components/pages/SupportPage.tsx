@@ -135,7 +135,7 @@ export function SupportPage({ locale }: { locale: Locale }) {
       </section>
 
       <Suspense fallback={<div className="section text-center text-warm-400">{t.loading}</div>}>
-        <DonationSection dict={t.donation} />
+        <DonationSection dict={t.donation} locale={locale} />
       </Suspense>
 
       <AlternativePaymentMethods dict={t} />

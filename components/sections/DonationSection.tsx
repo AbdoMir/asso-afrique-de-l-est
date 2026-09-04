@@ -1,23 +1,19 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClientSafe } from '@/lib/supabase/client'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Heart, Check, Star, Crown, Sparkles, User, CreditCard,
-  ArrowRight, Info, Lock, Building2
-} from 'lucide-react'
+import { Heart, Check, Star, Crown, Sparkles, User, ArrowRight, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/Input'
 import { PrivacyNotice } from '@/components/ui/PrivacyNotice'
 import { toast } from '@/components/ui/Toaster'
 import { cn } from '@/lib/utils'
 import type { MembershipType } from '@/types'
 import type { Dictionary } from '@/lib/dictionaries'
+import type { Locale } from '@/lib/i18n'
 
 type DonationDict = Dictionary['pages']['support']['donation']
 
@@ -31,21 +27,6 @@ const FORMULAS = [
   { id: 'monthly_20' as MembershipType, amount: 20, monthly: true, color: 'from-secondary-500 to-secondary-600', highlighted: false, badge: 'premium' as const },
 ]
 
-// URLs complètes des formulaires HelloAsso, copiées depuis le back-office
-// (rubrique « Widgets et boutons » de chaque formulaire). On ne reconstruit
-// pas ces URLs à partir d'un slug : leur format dépend du type de formulaire
-// et une URL devinée mènerait à une 404 en pleine page de paiement.
-//
-// Seuls les formulaires HelloAsso déclenchent l'émission automatique du reçu
-// fiscal CERFA — l'API Checkout, elle, ne le fait pas.
-// https://dev.helloasso.com/docs/guide-dintégration
-const HELLOASSO_FORM_URLS: Record<MembershipType, string> = {
-  simple: process.env.NEXT_PUBLIC_HELLOASSO_URL_ADHESION || '',
-  monthly_5: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
-  monthly_10: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
-  monthly_20: process.env.NEXT_PUBLIC_HELLOASSO_URL_DON || '',
-}
-
 const FORMULA_ICONS: Record<MembershipType, React.ReactNode> = {
   simple: <User className="w-5 h-5" />,
   monthly_5: <Heart className="w-5 h-5" />,
@@ -55,26 +36,25 @@ const FORMULA_ICONS: Record<MembershipType, React.ReactNode> = {
 
 // ─── Validation schema ─────────────────────────────────────────────────────────
 
-const makeDonationSchema = (t: DonationDict) => z.object({
-  first_name: z.string().min(2, t.errorFirstName),
-  last_name: z.string().min(2, t.errorLastName),
-  email: z.string().email(t.errorEmail),
-  phone: z.string().optional(),
-  address: z.string().min(5, t.errorAddress),
-  city: z.string().min(2, t.errorCity),
-  zip_code: z.string().regex(/^\d{5}$/, t.errorZip),
-  comment: z.string().optional(),
-  accept_statutes: z.literal(true, {
-    errorMap: () => ({ message: t.errorStatutes }),
-  }),
-  newsletter_consent: z.boolean().optional(),
-  sepa_mandate_consent: z.boolean().optional(),
-}).refine(
-  (data) => {
-    // SEPA mandate required for monthly donations
-    return true // validated dynamically based on formula
-  }
-)
+/**
+ * Le formulaire ne recueille plus que ce qui nous appartient en propre.
+ *
+ * Identité, adresse et coordonnées bancaires sont saisies sur la page de
+ * paiement Stripe, qui les collecte de toute façon pour établir le paiement.
+ * Les redemander ici serait une double saisie, et surtout une collecte sans
+ * finalité : nous n'en aurions aucun usage avant que Stripe ne nous les
+ * transmette par le webhook.
+ *
+ * Le mandat SEPA a disparu pour la même raison : Stripe le recueille sur sa
+ * propre page, dans la formulation réglementaire, et en conserve la preuve.
+ */
+const makeDonationSchema = (t: DonationDict) =>
+  z.object({
+    accept_statutes: z.literal(true, {
+      errorMap: () => ({ message: t.errorStatutes }),
+    }),
+    newsletter_consent: z.boolean().optional(),
+  })
 
 type DonationFormData = z.infer<ReturnType<typeof makeDonationSchema>>
 
@@ -99,7 +79,7 @@ function StepIndicator({ step, current }: { step: number; current: number }) {
 
 const VALID_FORMULA_IDS = FORMULAS.map((f) => f.id)
 
-export function DonationSection({ dict }: { dict: DonationDict }) {
+export function DonationSection({ dict, locale }: { dict: DonationDict; locale: Locale }) {
   const t = dict
   const donationSchema = React.useMemo(() => makeDonationSchema(t), [t])
   const searchParams = useSearchParams()
@@ -115,14 +95,11 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
   const formulaIndex = FORMULAS.findIndex((f) => f.id === selectedFormula)
   const formula = FORMULAS[formulaIndex]
   const formulaText = t.formulas[formulaIndex]
-  const isMonthly = formula.monthly
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
-    setValue,
   } = useForm<DonationFormData>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
@@ -132,70 +109,44 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
     },
   })
 
-  const sepaConsent = watch('sepa_mandate_consent')
-
-  // Le paiement s'effectue sur HelloAsso, qui ne nous transmet aucune donnée
-  // permettant d'identifier le compte : le rattachement du don à l'espace
-  // adhérent se fait uniquement sur l'email du payeur. On pré-remplit donc
-  // celui du compte connecté, et on l'indique explicitement à l'étape suivante.
-  const [accountEmail, setAccountEmail] = useState<string | null>(null)
-
-  useEffect(() => {
-    const supabase = createClientSafe()
-    if (!supabase) return
-
-    supabase.auth.getUser().then(({ data }) => {
-      const email = data.user?.email
-      if (email) {
-        setAccountEmail(email)
-        setValue('email', email)
-      }
-    })
-  }, [setValue])
-
+  /**
+   * Ouvre la page de paiement Stripe.
+   *
+   * La session est créée côté serveur : le montant s'y déduit de la formule,
+   * jamais d'une valeur envoyée par le navigateur, qu'il suffirait de modifier
+   * pour adhérer à un centime.
+   */
   async function onSubmit(data: DonationFormData) {
-    if (isMonthly && !sepaConsent) {
-      toast({
-        title: t.toastSepaTitle,
-        description: t.toastSepaText,
-        variant: 'error',
-      })
-      return
-    }
-
-    const formUrl = HELLOASSO_FORM_URLS[selectedFormula]
-
-    if (!formUrl) {
-      toast({
-        title: t.toastUnavailableTitle,
-        description:
-          'Le formulaire de paiement n\'est pas encore configuré. Merci de nous contacter directement.',
-        variant: 'error',
-      })
-      return
-    }
-
     setIsSubmitting(true)
+
     try {
-      // Le consentement newsletter est propre à l'association : HelloAsso ne le
-      // collecte pas, on l'enregistre donc avant la redirection.
-      if (data.newsletter_consent) {
-        await fetch('/api/newsletter', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: data.email,
-            first_name: data.first_name,
-            consent: true,
-          }),
-        }).catch(() => {
-          // Un échec d'inscription newsletter ne doit pas bloquer le paiement.
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          formula: selectedFormula,
+          acceptStatutes: true,
+          newsletterConsent: data.newsletter_consent ?? false,
+          locale,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.url) {
+        toast({
+          title: t.toastUnavailableTitle,
+          description: result.error || t.toastUnavailableText,
+          variant: 'error',
         })
+        setIsSubmitting(false)
+        return
       }
 
-      // L'identité et l'adresse du donateur sont saisies sur HelloAsso, qui en
-      // a besoin pour éditer le reçu fiscal.
-      window.location.href = formUrl
+      // `assign` plutôt qu'une affectation de `location.href` : même effet,
+      // mais la règle d'immutabilité du compilateur React interdit d'écrire
+      // dans une variable extérieure au composant.
+      window.location.assign(result.url)
     } catch (error) {
       toast({
         title: t.toastErrorTitle,
@@ -323,7 +274,7 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-semibold text-warm-900">{formulaText.label}</p>
-                      <p className="text-warm-500 text-sm">{t.viaHelloAsso}</p>
+                      <p className="text-warm-500 text-sm">{t.viaStripe}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black font-display text-primary-500">
@@ -370,76 +321,10 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
 
                 <form onSubmit={handleSubmit(() => setStep(3))} noValidate>
                   <div className="card p-6 md:p-8 space-y-5">
-                    {/* Name row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input
-                        label={t.firstName}
-                        placeholder="Marie"
-                        required
-                        error={errors.first_name?.message}
-                        {...register('first_name')}
-                      />
-                      <Input
-                        label={t.lastName}
-                        placeholder="Dupont"
-                        required
-                        error={errors.last_name?.message}
-                        {...register('last_name')}
-                      />
-                    </div>
-
-                    {/* Email & Phone */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Input
-                        label={t.email}
-                        type="email"
-                        placeholder="marie@example.fr"
-                        required
-                        error={errors.email?.message}
-                        {...register('email')}
-                      />
-                      <Input
-                        label={t.phone}
-                        type="tel"
-                        placeholder="+33 6 12 34 56 78"
-                        error={errors.phone?.message}
-                        {...register('phone')}
-                      />
-                    </div>
-
-                    {/* Address */}
-                    <Input
-                      label={t.address}
-                      placeholder="12 rue de la Paix"
-                      required
-                      error={errors.address?.message}
-                      {...register('address')}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        label={t.zipCode}
-                        placeholder="75001"
-                        required
-                        maxLength={5}
-                        error={errors.zip_code?.message}
-                        {...register('zip_code')}
-                      />
-                      <Input
-                        label={t.city}
-                        placeholder="Paris"
-                        required
-                        error={errors.city?.message}
-                        {...register('city')}
-                      />
-                    </div>
-
-                    {/* Comment */}
-                    <Textarea
-                      label={t.comment}
-                      placeholder={t.commentPlaceholder}
-                      {...register('comment')}
-                    />
+                    {/* Nom, adresse et coordonnées : saisis sur la page Stripe,
+                        qui en a besoin pour le paiement et nous les transmet
+                        ensuite par le webhook. Les redemander ici serait une
+                        double saisie sans finalité propre. */}
 
                     {/* Consents */}
                     <div className="space-y-4 pt-2">
@@ -471,40 +356,10 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
                         <p className="error-message ml-8">{errors.accept_statutes.message}</p>
                       )}
 
-                      {/* SEPA consent (monthly only) */}
-                      {isMonthly && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                          <label className="flex items-start gap-3 cursor-pointer">
-                            <div className="relative mt-0.5">
-                              <input
-                                type="checkbox"
-                                className="peer sr-only"
-                                {...register('sepa_mandate_consent')}
-                              />
-                              <div className="w-5 h-5 border-2 border-blue-300 rounded peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
-                              <Check className="absolute inset-0 w-3 h-3 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
-                                <Building2 className="w-4 h-4" />
-                                {t.sepaTitle}{' '}
-                                <span className="text-primary-500">*</span>
-                              </p>
-                              <p className="text-xs text-blue-700 mt-1 leading-relaxed">
-                                {t.sepaTextBefore}
-                                <strong>{formula.amount}€</strong>
-                                {t.sepaTextAfter}
-                              </p>
-                            </div>
-                          </label>
-                          {isMonthly && !sepaConsent && (
-                            <p className="text-xs text-blue-600 flex items-center gap-1 mt-2 ml-8">
-                              <Info className="w-3.5 h-3.5" />
-                              {t.sepaRequired}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                      {/* Le mandat SEPA est recueilli par Stripe sur sa propre
+                          page, dans la formulation réglementaire, et c'est lui
+                          qui en conserve la preuve. Le doubler ici n'ajouterait
+                          qu'une case à cocher sans valeur juridique. */}
 
                       {/* Newsletter */}
                       <label className="flex items-start gap-3 cursor-pointer">
@@ -617,18 +472,11 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
                     </div>
                   </div>
 
-                  {/* Le don n'est rattaché au compte que si l'email du payeur
-                      correspond : c'est la seule clé dont on dispose. */}
-                  {accountEmail && (
-                    <div className="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex gap-3">
-                      <Info className="w-5 h-5 shrink-0 text-amber-600" />
-                      <p className="text-sm leading-relaxed">
-                        {t.accountEmailBefore}
-                        <span className="font-semibold">{accountEmail}</span>
-                        {t.accountEmailAfter}
-                      </p>
-                    </div>
-                  )}
+                  {/* L'avertissement « réglez bien avec cette adresse » a
+                      disparu avec HelloAsso. Le rattachement au compte ne
+                      dépend plus de l'email du payeur : l'identifiant de
+                      l'adhérent voyage dans les métadonnées de la session
+                      Stripe, et le webhook le relit tel quel. */}
 
                   <div className="bg-warm-50 rounded-xl p-4 text-sm text-warm-600 space-y-1">
                     <p className="flex items-center gap-2">
@@ -676,5 +524,5 @@ export function DonationSection({ dict }: { dict: DonationDict }) {
   )
 }
 
-// Import needed for Shield, FileCheck used in Step 3
-import { Shield, FileCheck, Lock as LockIcon } from 'lucide-react'
+// Icônes de l'étape 3. `Lock` est déjà importé en tête de fichier.
+import { Shield, FileCheck } from 'lucide-react'

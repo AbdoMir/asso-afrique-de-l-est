@@ -187,13 +187,13 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale: Locale }) {
               ))}
             </ul>
 
-            {/* HelloAsso badge */}
+            {/* Prestataire de paiement */}
             <div className="mt-6 p-3 bg-warm-800 rounded-xl">
               <p className="text-xs text-warm-400 mb-1 flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5 text-secondary-400" />
                 {t.securePaymentVia}
               </p>
-              <p className="text-sm font-semibold text-white">HelloAsso</p>
+              <p className="text-sm font-semibold text-white">Stripe</p>
               <p className="text-xs text-warm-500 mt-1">
                 {t.receiptNote}
               </p>

@@ -231,7 +231,7 @@ export const fr = {
       titleHighlight: "l'intégration des familles",
       text: "Votre don mensuel régulier permet de financer sur la durée nos cours de français (FLE), l'aide aux devoirs pour les jeunes, l'aide à l'emploi et nos services de traduction sociale. Vous donnez de la stabilité et de l'espoir.",
       guarantee1: "Déductible d'impôts à 66% • Reçu fiscal annuel automatique",
-      guarantee2: 'Paiement sécurisé HelloAsso • Sans engagement',
+      guarantee2: 'Paiement sécurisé par Stripe • Sans engagement',
       chooseTitle: 'Choisissez votre soutien :',
       popular: 'Populaire',
       seeAll: 'Voir toutes les formules',
@@ -570,11 +570,11 @@ export const fr = {
       heroStats: [
         { value: '5€', label: 'par mois', sub: 'pour commencer' },
         { value: '66%', label: 'déductibles', sub: 'des impôts' },
-        { value: '100%', label: 'sécurisé', sub: 'HelloAsso' },
+        { value: '100%', label: 'sécurisé', sub: 'Stripe' },
       ],
       guarantees: [
-        { title: 'Paiement 100 % sécurisé', description: 'HelloAsso assure la sécurité de vos transactions.' },
-        { title: 'Reçu fiscal automatique', description: 'Votre reçu CERFA 11580*03 vous est envoyé par HelloAsso.' },
+        { title: 'Paiement 100 % sécurisé', description: 'Stripe assure la sécurité de vos transactions.' },
+        { title: 'Reçu fiscal automatique', description: "Votre reçu CERFA 11580*03 vous est envoyé chaque janvier par l'association." },
         { title: 'Résiliation en un clic', description: 'Annulez votre don mensuel à tout moment, sans engagement.' },
         { title: '66 % déductibles', description: "Vos dons sont déductibles à 66 % de l'impôt sur le revenu." },
       ],
@@ -620,7 +620,7 @@ export const fr = {
       faqs: [
         {
           q: 'Comment obtenir mon reçu fiscal ?',
-          a: "Vos paiements sont encaissés par HelloAsso, qui édite et vous envoie automatiquement votre reçu fiscal (CERFA 11580*03) par email, à l'adresse utilisée lors du paiement. Vous le retrouvez également à tout moment depuis votre compte HelloAsso, rubrique « Mes paiements ».",
+          a: "L'association édite votre reçu fiscal (CERFA 11580*03) chaque mois de janvier et vous l'envoie par email. Il couvre le total de vos dons de l'année écoulée. Vous le retrouvez également à tout moment dans votre espace adhérent, rubrique « Mes reçus fiscaux ».",
         },
         {
           q: 'Comment annuler mon don mensuel ?',
@@ -628,7 +628,7 @@ export const fr = {
         },
         {
           q: 'Mes données sont-elles sécurisées ?',
-          a: 'Absolument. Vos données personnelles et bancaires sont protégées conformément au RGPD. Les paiements sont traités par HelloAsso, certifié PCI-DSS. Nous ne stockons jamais vos informations bancaires.',
+          a: 'Absolument. Vos données personnelles et bancaires sont protégées conformément au RGPD. Les paiements sont traités par Stripe, certifié PCI-DSS niveau 1. Votre numéro de carte ne transite jamais par nos serveurs et nous ne le stockons nulle part.',
         },
         {
           q: 'Puis-je modifier le montant de mon don ?',
@@ -642,7 +642,7 @@ export const fr = {
       altBadge: 'Autres moyens de paiement',
       altTitle: "D'autres façons de nous soutenir",
       altSubtitle:
-        'En plus du paiement en ligne via HelloAsso, vous pouvez également nous soutenir par virement ou directement sur place.',
+        'En plus du paiement en ligne par carte ou prélèvement SEPA, vous pouvez également nous soutenir par virement ou directement sur place.',
       transferTitle: 'Virement bancaire',
       transferText:
         'Idéal pour les dons annuels importants. Indiquez vos nom et email en référence afin que nous puissions vous adresser votre reçu fiscal.',
@@ -655,7 +655,7 @@ export const fr = {
         { day: 'Samedi', hours: '10h-13h' },
       ],
 
-      /** Formulaire de don en trois étapes, redirigeant vers HelloAsso. */
+      /** Formulaire de don en trois étapes, redirigeant vers Stripe Checkout. */
       donation: {
         steps: ['Formule', 'Coordonnées', 'Paiement'],
         badgePopular: 'Populaire',
@@ -707,7 +707,7 @@ export const fr = {
           'Adhésion annuelle ou don mensuel récurrent — chaque contribution compte.',
         perMonth: '/mois',
         perYear: '/an',
-        viaHelloAsso: 'via HelloAsso',
+        viaStripe: 'via Stripe',
         monthlyLabel: 'par mois',
         yearlyLabel: 'une fois par an',
         secureLine: 'Paiement sécurisé — déductible à 66 % des impôts',
@@ -715,24 +715,9 @@ export const fr = {
         step2Title: 'Vos coordonnées',
         step2Subtitle:
           'Ces informations sont nécessaires pour votre reçu fiscal et votre carte de membre.',
-        firstName: 'Prénom',
-        lastName: 'Nom',
-        email: 'Email',
-        phone: 'Téléphone',
-        address: 'Adresse',
-        zipCode: 'Code postal',
-        city: 'Ville',
-        comment: 'Commentaire libre',
-        commentPlaceholder: "Un message pour l'association, une question…",
         acceptStatutes: "J'accepte les statuts de l'association",
         readStatutes: 'Lire les statuts',
         readStatutesSuffix: "de l'Association Afrique de l'Est et ses amis",
-        sepaTitle: 'Mandat de prélèvement SEPA',
-        sepaTextBefore:
-          "J'autorise l'Association Afrique de l'Est et ses amis (créancier SEPA) à envoyer des instructions à ma banque pour débiter mon compte du montant de ",
-        sepaTextAfter:
-          " chaque mois. Ce mandat est conforme à la directive européenne sur les services de paiement (DSP2). Je peux le révoquer à tout moment.",
-        sepaRequired: 'Requis pour les dons mensuels',
         newsletterLabel:
           "Je souhaite recevoir la newsletter de l'association (actualités, événements, témoignages)",
         back: '← Retour',
@@ -746,24 +731,13 @@ export const fr = {
         debitNoteBefore: '💡 Vous serez prélevé de ',
         debitNoteAfter:
           ", intégralement reversés à l'association. Un reçu fiscal CERFA vous permettra de déduire 66 % de ce montant de votre impôt sur le revenu lors de votre prochaine déclaration.",
-        paymentVia: 'Paiement via HelloAsso',
-        redirectNote: 'Vous serez redirigé vers la plateforme HelloAsso',
-        accountEmailBefore: "Sur HelloAsso, réglez bien avec l'adresse ",
-        accountEmailAfter:
-          " : c'est elle qui permet de rattacher votre versement à votre espace adhérent. Avec une autre adresse, le don sera enregistré mais n'apparaîtra pas dans votre compte.",
+        paymentVia: 'Paiement via Stripe',
+        redirectNote: 'Vous serez redirigé vers la page de paiement sécurisée de Stripe',
         sslNote: 'Connexion sécurisée SSL/TLS',
         pciNote: 'Certifié PCI-DSS — aucune donnée bancaire stockée',
-        cerfaNote: 'Reçu fiscal CERFA émis automatiquement par HelloAsso',
-        payButton: 'Payer via HelloAsso',
-        errorFirstName: 'Prénom requis (minimum 2 caractères)',
-        errorLastName: 'Nom requis (minimum 2 caractères)',
-        errorEmail: 'Adresse email invalide',
-        errorAddress: 'Adresse requise',
-        errorCity: 'Ville requise',
-        errorZip: 'Code postal invalide (5 chiffres)',
+        cerfaNote: "Reçu fiscal CERFA envoyé chaque janvier par l'association",
+        payButton: 'Procéder au paiement',
         errorStatutes: "Vous devez accepter les statuts de l'association",
-        toastSepaTitle: 'Mandat SEPA requis',
-        toastSepaText: 'Veuillez accepter le mandat de prélèvement SEPA pour continuer.',
         toastUnavailableTitle: 'Paiement momentanément indisponible',
         toastUnavailableText:
           "Le formulaire de paiement n'est pas encore configuré. Merci de nous contacter directement.",
