@@ -27,7 +27,16 @@ import Stripe from 'stripe'
 const cle = process.env.STRIPE_SECRET_KEY
 const enModeReel = process.argv.includes('--live')
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://asso.afrique.est-sa.org'
+/**
+ * Adresse publique du site, pour l'endpoint webhook.
+ *
+ * L'argument `--url=` prime sur l'environnement. Sans lui, un lancement avec
+ * `--env-file=.env.local` reprendrait `NEXT_PUBLIC_APP_URL`, qui vaut
+ * `http://localhost:3000` en développement — et Stripe refuse d'enregistrer un
+ * webhook vers une adresse qu'il ne peut pas joindre.
+ */
+const argumentUrl = process.argv.find((a) => a.startsWith('--url='))?.slice(6)
+const siteUrl = argumentUrl || process.env.NEXT_PUBLIC_APP_URL || ''
 const urlWebhook = `${siteUrl}/api/stripe/webhook`
 
 /** Les quatre événements traités par app/api/stripe/webhook/route.ts. */
@@ -69,6 +78,26 @@ if (cle.startsWith('sk_live_') && !enModeReel) {
 
 if (!cle.startsWith('sk_live_') && enModeReel) {
   console.error('Le drapeau --live est passé avec une clé de test. Rien de fait.')
+  process.exit(1)
+}
+
+// Stripe doit pouvoir joindre l'endpoint : ni localhost, ni HTTP en clair. On
+// le vérifie ici plutôt que d'aller au bout et d'échouer après avoir créé les
+// tarifs, comme lors du premier lancement.
+const adresseInvalide =
+  !siteUrl ||
+  !siteUrl.startsWith('https://') ||
+  /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(siteUrl)
+
+if (adresseInvalide) {
+  console.error(
+    `Adresse du site inutilisable pour un webhook : ${siteUrl || '(vide)'}\n\n` +
+      'Stripe doit pouvoir atteindre l endpoint : il lui faut une adresse\n' +
+      'publique en HTTPS. Indiquez-la explicitement :\n\n' +
+      '  node --env-file=.env.local scripts/stripe-setup.mjs --url=https://votre-domaine\n\n' +
+      'Pour éprouver le webhook en local, passez plutôt par la CLI Stripe :\n' +
+      '  stripe listen --forward-to localhost:3000/api/stripe/webhook\n'
+  )
   process.exit(1)
 }
 
@@ -171,7 +200,17 @@ for (const tarif of TARIFS) {
   identifiants[tarif.variable] = cree.id
 }
 
-const secretWebhook = await configurerWebhook()
+// Un échec sur le webhook ne doit pas emporter l'affichage des tarifs déjà
+// créés : sans eux, il faudrait aller les rechercher dans le tableau de bord.
+let secretWebhook = null
+let echecWebhook = null
+
+try {
+  secretWebhook = await configurerWebhook()
+} catch (erreur) {
+  echecWebhook = erreur instanceof Error ? erreur.message : String(erreur)
+  console.error(`\nWebhook non configuré : ${echecWebhook}`)
+}
 
 // ─── Ce qu'il reste à reporter ───────────────────────────────────────────────
 
@@ -183,7 +222,13 @@ for (const [variable, valeur] of Object.entries(identifiants)) {
   console.log(`${variable}=${valeur}`)
 }
 
-if (secretWebhook) {
+if (echecWebhook) {
+  console.log(
+    "\nSTRIPE_WEBHOOK_SECRET : non obtenu, l'endpoint n'a pas été créé.\n" +
+      '  Les tarifs ci-dessus sont en place ; relancez le script une fois la\n' +
+      "  cause corrigée, il ne les recréera pas.\n"
+  )
+} else if (secretWebhook) {
   console.log(`STRIPE_WEBHOOK_SECRET=${secretWebhook}`)
 } else {
   console.log(
