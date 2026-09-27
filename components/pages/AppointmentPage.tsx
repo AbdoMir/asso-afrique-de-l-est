@@ -336,7 +336,10 @@ export function AppointmentPage({ locale }: { locale: Locale }) {
                                     }`}
                                   >
                                     <Clock className="w-3.5 h-3.5" />
-                                    {timeFmt.format(new Date(slot.start_at))}
+                                    {/* Sans l'heure de fin, un créneau de 11h à 12h s'affichait
+                                        « 11:00 » : impossible de distinguer sa durée, et le
+                                        dernier créneau d'une matinée passait pour absent. */}
+                                    {timeFmt.format(new Date(slot.start_at))} – {timeFmt.format(new Date(slot.end_at))}
                                     {slot.capacity > 1 && (
                                       <span className="inline-flex items-center gap-1 text-xs opacity-80">
                                         <Users className="w-3 h-3" />
