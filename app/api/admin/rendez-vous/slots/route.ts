@@ -8,7 +8,9 @@ export const dynamic = 'force-dynamic'
 // Même exigence de validation que sur les routes publiques : un compte staff
 // compromis ne doit pas pouvoir insérer des créneaux incohérents (capacité
 // négative, dates inversées) que le reste de l'app tient pour valides.
-const slotSchema = z
+// Exporté et réutilisé par la modification (slots/[id]) : deux schémas
+// distincts finiraient tôt ou tard par diverger.
+export const slotSchema = z
   .object({
     type: z.enum(['administratif', 'fle_atelier', 'autre']),
     start_at: z.string().datetime({ offset: true }),

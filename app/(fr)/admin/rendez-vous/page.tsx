@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Users, Trash2, X, ShieldAlert, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
+import { Calendar, Users, Trash2, Pencil, X, ShieldAlert, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { toast } from '@/components/ui/Toaster'
@@ -21,6 +21,22 @@ import type { AppointmentReason } from '@/types'
 function libelleMotif(motif?: string | null): string {
   if (!motif) return ''
   return APPOINTMENT_REASON_LABELS[motif as AppointmentReason] ?? motif
+}
+
+/**
+ * Les champs <input type="date"> et <input type="time"> attendent une heure
+ * locale, alors que la base renvoie de l'UTC. `toISOString()` ne convient donc
+ * pas : il décalerait le créneau de deux heures à chaque ouverture du
+ * formulaire d'édition.
+ */
+const pad = (n: number) => String(n).padStart(2, '0')
+const toDateInput = (iso: string) => {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+const toTimeInput = (iso: string) => {
+  const d = new Date(iso)
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 const dateFmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
@@ -45,6 +61,7 @@ export default function AdminRendezVousPage() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [capacity, setCapacity] = useState(1)
+  const [editingSlotId, setEditingSlotId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Onglet « RDV extérieurs » : on cherche un adhérent par email, puis on
@@ -219,7 +236,36 @@ export default function AdminRendezVousPage() {
     }
   }
 
-  const handleAddSlot = async (e: React.FormEvent) => {
+  const resetSlotForm = () => {
+    setEditingSlotId(null)
+    setDate('')
+    setStartTime('')
+    setEndTime('')
+    setCapacity(1)
+  }
+
+  /**
+   * Charge un créneau existant dans le formulaire. Les réservations déjà prises
+   * ne sont pas annulées par la modification : déplacer un créneau réservé
+   * change l'heure du rendez-vous de quelqu'un, d'ou l'avertissement.
+   */
+  const handleEditSlot = (slot: any) => {
+    setEditingSlotId(slot.id)
+    setType(slot.type)
+    setDate(toDateInput(slot.start_at))
+    setStartTime(toTimeInput(slot.start_at))
+    setEndTime(toTimeInput(slot.end_at))
+    setCapacity(slot.capacity)
+    if (slot.booked > 0) {
+      toast({
+        title: 'Créneau déjà réservé',
+        description: `${slot.booked} personne(s) inscrite(s) : pensez à les prévenir du changement.`,
+        variant: 'error',
+      })
+    }
+  }
+
+  const handleSubmitSlot = async (e: React.FormEvent) => {
     e.preventDefault()
     const startAt = new Date(`${date}T${startTime}:00`)
     const endAt = new Date(`${date}T${endTime}:00`)
@@ -231,19 +277,19 @@ export default function AdminRendezVousPage() {
 
     setSubmitting(true)
     try {
-      const res = await fetch('/api/admin/rendez-vous/slots', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, start_at: startAt.toISOString(), end_at: endAt.toISOString(), capacity }),
-      })
+      const res = await fetch(
+        editingSlotId ? `/api/admin/rendez-vous/slots/${editingSlotId}` : '/api/admin/rendez-vous/slots',
+        {
+          method: editingSlotId ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, start_at: startAt.toISOString(), end_at: endAt.toISOString(), capacity }),
+        }
+      )
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)
 
-      toast({ title: 'Créneau ajouté', variant: 'success' })
-      setDate('')
-      setStartTime('')
-      setEndTime('')
-      setCapacity(1)
+      toast({ title: editingSlotId ? 'Créneau modifié' : 'Créneau ajouté', variant: 'success' })
+      resetSlotForm()
       loadSlots()
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'error' })
@@ -261,6 +307,7 @@ export default function AdminRendezVousPage() {
       return
     }
     toast({ title: 'Créneau supprimé', variant: 'success' })
+    if (editingSlotId === id) resetSlotForm()
     loadSlots()
   }
 
@@ -339,8 +386,10 @@ export default function AdminRendezVousPage() {
           {activeTab === 'slots' && (
             <motion.div key="slots" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
               <div className="bg-white rounded-3xl shadow-card border border-warm-100 p-6">
-                <h2 className="font-display font-bold text-lg text-warm-900 mb-4">Ajouter un créneau</h2>
-                <form onSubmit={handleAddSlot} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <h2 className="font-display font-bold text-lg text-warm-900 mb-4">
+                  {editingSlotId ? 'Modifier le créneau' : 'Ajouter un créneau'}
+                </h2>
+                <form onSubmit={handleSubmitSlot} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                   <div>
                     <label className="label">Type</label>
                     <select value={type} onChange={(e) => setType(e.target.value as AppointmentType)} className="input">
@@ -353,8 +402,13 @@ export default function AdminRendezVousPage() {
                   <Input type="time" label="Heure début" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
                   <Input type="time" label="Heure fin" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
                   <Input type="number" label="Capacité" min={1} value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} required />
-                  <div className="md:col-span-5">
-                    <Button type="submit" variant="primary" isLoading={submitting}>Ajouter</Button>
+                  <div className="md:col-span-5 flex gap-3">
+                    <Button type="submit" variant="primary" isLoading={submitting}>
+                      {editingSlotId ? 'Enregistrer' : 'Ajouter'}
+                    </Button>
+                    {editingSlotId && (
+                      <Button type="button" variant="outline" onClick={resetSlotForm}>Annuler</Button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -393,7 +447,9 @@ export default function AdminRendezVousPage() {
                         return (
                           <React.Fragment key={slot.id}>
                             <tr
-                              className="border-b border-warm-50 cursor-pointer hover:bg-warm-50/50"
+                              className={`border-b border-warm-50 cursor-pointer hover:bg-warm-50/50 ${
+                                editingSlotId === slot.id ? 'bg-primary-50/60' : ''
+                              }`}
                               onClick={() => setExpandedSlotId(isExpanded ? null : slot.id)}
                             >
                               <td className="py-3 pl-1 text-warm-400">
@@ -409,7 +465,14 @@ export default function AdminRendezVousPage() {
                                   <Users className="w-3.5 h-3.5" />{slot.booked} / {slot.capacity}
                                 </span>
                               </td>
-                              <td className="py-3 text-right">
+                              <td className="py-3 text-right whitespace-nowrap">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditSlot(slot) }}
+                                  className="text-warm-500 hover:bg-warm-100 p-2 rounded-lg transition-colors"
+                                  aria-label="Modifier"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleDeleteSlot(slot.id) }}
                                   className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
